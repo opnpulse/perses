@@ -28,6 +28,7 @@ import { resource as variableResource } from './variable-client';
 import { resource as datasourceResource } from './datasource-client';
 import buildQueryKey from './querykey-builder';
 import { userKey } from './user-client';
+import { useAuthToken } from './auth-client';
 
 const resource = 'projects';
 
@@ -60,8 +61,10 @@ export function getProject(name: string): Promise<ProjectResource> {
   });
 }
 
-export function getProjects(): Promise<ProjectResource[]> {
-  const url = buildURL({ resource });
+export function getProjects(subPrefix: string): Promise<ProjectResource[]> {
+  const fullResource = `${subPrefix}/${resource}`;
+
+  const url = buildURL({ resource: fullResource });
   return fetchJson<ProjectResource[]>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
@@ -106,12 +109,14 @@ export function useProject(name: string): UseQueryResult<ProjectResource, Status
  */
 export function useProjectList(options?: ProjectListOptions): UseQueryResult<ProjectResource[], StatusError> {
   const queryKey = buildQueryKey({ resource });
+  const { data: decodedToken } = useAuthToken();
+
+  const subPrefix = decodedToken?.sub ? `owners/${decodedToken.sub}` : undefined;
 
   return useQuery<ProjectResource[], StatusError>({
-    queryKey: queryKey,
-    queryFn: () => {
-      return getProjects();
-    },
+    queryKey,
+    queryFn: () => getProjects(subPrefix!),
+    enabled: !!subPrefix,
     ...options,
   });
 }

@@ -21,12 +21,17 @@ export type URLParams = {
   project?: string;
   pathSuffix?: string[];
   queryParams?: URLSearchParams;
+  owner?: string;
   apiURL?: string;
 };
 
 export default function buildURL(params: URLParams): string {
   const basePath = PERSES_APP_CONFIG.api_prefix;
   let url = params.apiURL === undefined ? apiUrl : params.apiURL;
+
+  if (params.owner !== undefined && params.owner.length > 0) {
+    url = `${url}/owners/${encodeURIComponent(params.owner)}`;
+  }
   if (params.project !== undefined && params.project.length > 0) {
     url = `${url}/projects/${encodeURIComponent(params.project)}`;
   }

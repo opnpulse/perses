@@ -81,7 +81,7 @@ func (s *service) update(entity *v1.Secret, parameters apiInterface.Parameters) 
 		return nil, apiInterface.HandleBadRequestError("metadata.project and the project name in the http path request don't match")
 	}
 	// find the previous version of the Secret
-	oldEntity, err := s.dao.Get(parameters.Project, parameters.Name)
+	oldEntity, err := s.dao.Get(parameters.ProjectID, parameters.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -99,11 +99,19 @@ func (s *service) update(entity *v1.Secret, parameters apiInterface.Parameters) 
 }
 
 func (s *service) Delete(_ echo.Context, parameters apiInterface.Parameters) error {
-	return s.dao.Delete(parameters.Project, parameters.Name)
+	return s.dao.Delete(parameters.ProjectID, parameters.Name)
 }
 
 func (s *service) Get(parameters apiInterface.Parameters) (*v1.PublicSecret, error) {
-	scrt, err := s.dao.Get(parameters.Project, parameters.Name)
+	scrt, err := s.dao.Get(parameters.ProjectID, parameters.Name)
+	if err != nil {
+		return nil, err
+	}
+	return v1.NewPublicSecret(scrt), nil
+}
+
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.PublicSecret, error) {
+	scrt, err := s.dao.Get(parameters.ProjectID, parameters.Name)
 	if err != nil {
 		return nil, err
 	}

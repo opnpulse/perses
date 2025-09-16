@@ -99,6 +99,16 @@ type EphemeralDashboard struct {
 	Spec     EphemeralDashboardSpec `json:"spec" yaml:"spec"`
 }
 
+func (e *EphemeralDashboard) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (e *EphemeralDashboard) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (e *EphemeralDashboard) GetMetadata() modelAPI.Metadata {
 	return &e.Metadata
 }
@@ -107,7 +117,15 @@ func (e *EphemeralDashboard) GetKind() string {
 	return string(e.Kind)
 }
 
-func (e *EphemeralDashboard) GetSpec() any {
+func (e *EphemeralDashboard) SetUserID(id int64) {
+	e.Metadata.UserID = id
+}
+
+func (e *EphemeralDashboard) SetProjectID(id int64) {
+	e.Metadata.ProjectID = id
+}
+
+func (e *EphemeralDashboard) GetSpec() interface{} {
 	return e.Spec
 }
 

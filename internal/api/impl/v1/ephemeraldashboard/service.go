@@ -115,6 +115,10 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.EphemeralDashboar
 	return s.dao.Get(parameters.Project, parameters.Name)
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.EphemeralDashboard, error) {
+	return s.dao.Get(parameters.Project, parameters.Name)
+}
+
 func (s *service) List(q *ephemeraldashboard.Query) ([]*v1.EphemeralDashboard, error) {
 	return s.dao.List(q)
 }

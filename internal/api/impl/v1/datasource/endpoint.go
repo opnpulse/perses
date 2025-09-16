@@ -18,6 +18,8 @@ package datasource
 import (
 	"fmt"
 
+	databaseModel "github.com/perses/perses/internal/api/database/model"
+
 	"github.com/labstack/echo/v4"
 	"github.com/perses/perses/internal/api/authorization"
 	"github.com/perses/perses/internal/api/interface/v1/datasource"
@@ -32,13 +34,15 @@ type endpoint struct {
 	toolbox   toolbox.Toolbox[*v1.Datasource, *datasource.Query]
 	readonly  bool
 	isDisable bool
+	dao       databaseModel.DAO
 }
 
-func NewEndpoint(cfg config.DatasourceConfig, service datasource.Service, authz authorization.Authorization, readonly bool, caseSensitive bool) route.Endpoint {
+func NewEndpoint(cfg config.DatasourceConfig, service datasource.Service, authz authorization.Authorization, readonly bool, caseSensitive bool, dao databaseModel.DAO) route.Endpoint {
 	return &endpoint{
-		toolbox:   toolbox.New[*v1.Datasource, *v1.Datasource, *datasource.Query](service, authz, v1.KindDatasource, caseSensitive),
+		toolbox:   toolbox.New[*v1.Datasource, *v1.Datasource, *datasource.Query](service, authz, v1.KindDatasource, caseSensitive, dao),
 		readonly:  readonly,
 		isDisable: cfg.Project.Disable,
+		dao:       dao,
 	}
 }
 
@@ -46,8 +50,11 @@ func (e *endpoint) CollectRoutes(g *route.Group) {
 	if e.isDisable {
 		return
 	}
-	group := g.Group(fmt.Sprintf("/%s", utils.PathDatasource))
-	subGroup := g.Group(fmt.Sprintf("/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathDatasource))
+	// Define the prefix with owner parameter
+	ownerPrefix := fmt.Sprintf("/%s/:%s", utils.PathOwner, utils.ParamOwner)
+
+	group := g.Group(ownerPrefix + fmt.Sprintf("/%s", utils.PathDatasource))
+	subGroup := g.Group(ownerPrefix + fmt.Sprintf("/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathDatasource))
 	if !e.readonly {
 		group.POST("", e.Create, false)
 		subGroup.POST("", e.Create, false)

@@ -22,8 +22,15 @@ import (
 )
 
 type Parameters struct {
-	Project string
-	Name    string
+	Project   string
+	ProjectID int64
+	Name      string
+	UserID    int64
+	Owner     string
+	Folder    string
+	FolderID  int64
+
+	UserName string
 }
 
 type Service[T api.Entity, K api.Entity, V databaseModel.Query] interface {
@@ -31,6 +38,7 @@ type Service[T api.Entity, K api.Entity, V databaseModel.Query] interface {
 	Update(ctx echo.Context, entity T, parameters Parameters) (K, error)
 	Delete(ctx echo.Context, parameters Parameters) error
 	Get(parameters Parameters) (K, error)
+	GetByNameAndUser(parameters Parameters) (K, error)
 	List(query V) ([]K, error)
 	RawList(query V) ([]json.RawMessage, error)
 	MetadataList(query V) ([]api.Entity, error)

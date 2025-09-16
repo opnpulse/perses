@@ -40,17 +40,21 @@ func (d *dao) Update(entity *v1.Datasource) error {
 	return d.client.Upsert(entity)
 }
 
-func (d *dao) Delete(project string, name string) error {
-	return d.client.Delete(d.kind, v1.NewProjectMetadata(project, name))
+func (d *dao) Delete(projectID int64, name string) error {
+	metadata := v1.NewMetadata(name)
+	metadata.ProjectID = projectID
+	return d.client.Delete(d.kind, metadata)
 }
 
 func (d *dao) DeleteAll(project string) error {
 	return d.client.DeleteByQuery(&datasource.Query{Project: project})
 }
 
-func (d *dao) Get(project string, name string) (*v1.Datasource, error) {
+func (d *dao) Get(projectID int64, name string) (*v1.Datasource, error) {
 	entity := &v1.Datasource{}
-	return entity, d.client.Get(d.kind, v1.NewProjectMetadata(project, name), entity)
+	metadata := v1.NewMetadata(name)
+	metadata.ProjectID = projectID
+	return entity, d.client.Get(d.kind, metadata, entity)
 }
 
 func (d *dao) List(q *datasource.Query) ([]*v1.Datasource, error) {

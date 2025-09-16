@@ -79,8 +79,27 @@ type GlobalVariable struct {
 	Spec     VariableSpec `json:"spec" yaml:"spec"`
 }
 
+func (v *GlobalVariable) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (v *GlobalVariable) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (v *GlobalVariable) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (v *GlobalVariable) GetMetadata() modelAPI.Metadata {
 	return &v.Metadata
+}
+
+func (v *GlobalVariable) SetUserID(id int64) {
+	v.Metadata.UserID = id
 }
 
 func (v *GlobalVariable) GetKind() string {
@@ -101,6 +120,23 @@ type Variable struct {
 	Kind     Kind            `json:"kind" yaml:"kind"`
 	Metadata ProjectMetadata `json:"metadata" yaml:"metadata"`
 	Spec     VariableSpec    `json:"spec" yaml:"spec"`
+}
+
+func (v *Variable) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (v *Variable) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (v *Variable) SetUserID(id int64) {
+	v.Metadata.UserID = id
+}
+func (v *Variable) SetProjectID(id int64) {
+	v.Metadata.ProjectID = id
 }
 
 func (v *Variable) GetMetadata() modelAPI.Metadata {

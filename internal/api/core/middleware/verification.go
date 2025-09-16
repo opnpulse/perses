@@ -21,10 +21,10 @@ import (
 	"net/http"
 	"strings"
 
-	apiInterface "github.com/perses/perses/internal/api/interface"
-
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	databaseModel "github.com/perses/perses/internal/api/database/model"
+	apiInterface "github.com/perses/perses/internal/api/interface"
 	"github.com/perses/perses/internal/api/interface/v1/project"
 	"github.com/perses/perses/internal/api/utils"
 )
@@ -83,7 +83,11 @@ func CheckProject(svc project.Service) echo.MiddlewareFunc {
 				}
 			}
 			if len(projectName) > 0 {
-				if _, err := svc.Get(apiInterface.Parameters{Name: projectName}); err != nil {
+				userName, err := getUserName(c)
+				if err != nil {
+					return err
+				}
+				if _, err := svc.GetByNameAndUser(apiInterface.Parameters{Name: projectName, UserName: userName}); err != nil {
 					if databaseModel.IsKeyNotFound(err) {
 						return apiInterface.HandleBadRequestError(apiInterface.ProjectDoesNotExistErrorMessage(projectName))
 					}
@@ -93,4 +97,21 @@ func CheckProject(svc project.Service) echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+func getUserName(ctx echo.Context) (string, error) {
+	fmt.Printf("--------------getUserName------------")
+	token, ok := ctx.Get("user").(*jwt.Token)
+	fmt.Printf("token: %+v\n", token)
+	if !ok {
+		return "", apiInterface.UnauthorizedError
+	}
+
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	fmt.Printf("claims: %+v\n", claims)
+	if !ok {
+		return "", apiInterface.UnauthorizedError
+	}
+
+	return claims.Subject, nil
 }

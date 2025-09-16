@@ -30,6 +30,12 @@ type Query interface {
 	// In case of project resource, this will return the project name set in the query parameter or in the URL path.
 	GetProjectQueryParam() string
 	SetProjectQueryParam(project string)
+
+	SetUserID(userID int64)
+
+	SetProjectID(projectID int64)
+
+	SetFolderID(folderID int64)
 }
 
 type DAO interface {
@@ -41,6 +47,14 @@ type DAO interface {
 	// Get will find a unique object. It will depend on the implementation to generate the key based on the kind and the metadata.
 	// entity is the object that will be used by the method to set the value returned by the database.
 	Get(kind modelV1.Kind, metadata modelAPI.Metadata, entity modelAPI.Entity) error
+
+	GetById(kind modelV1.Kind, id int64, entity modelAPI.Entity) error
+
+	GetIDAndType(metadata modelAPI.Metadata) (int64, string, error)
+
+	GetProjectID(metadata modelAPI.Metadata) (int64, error)
+
+	GetFolderID(metadata modelAPI.Metadata) (int64, error)
 	// Query will find a list of resource that is matching the query passed in parameter. The list found will be set in slice.
 	// slice is an interface for casting simplification. But slice must be a pointer to a slice of modelAPI.Metadata
 	Query(query Query, slice any) error
@@ -50,4 +64,6 @@ type DAO interface {
 	DeleteByQuery(query Query) error
 	HealthCheck() bool
 	GetLatestUpdateTime(kind []modelV1.Kind) (*string, error)
+
+	GetAccessTokenBySHA(sha string) ([]modelV1.AccessToken, error)
 }

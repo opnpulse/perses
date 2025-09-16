@@ -125,6 +125,21 @@ type GlobalRoleBinding struct {
 	Spec     RoleBindingSpec `json:"spec" yaml:"spec"`
 }
 
+func (g *GlobalRoleBinding) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GlobalRoleBinding) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GlobalRoleBinding) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (g *GlobalRoleBinding) UnmarshalJSON(data []byte) error {
 	var tmp GlobalRoleBinding
 	type plain GlobalRoleBinding
@@ -165,6 +180,10 @@ func (g *GlobalRoleBinding) GetMetadata() modelAPI.Metadata {
 	return &g.Metadata
 }
 
+func (g *GlobalRoleBinding) SetUserID(id int64) {
+	g.Metadata.UserID = id
+}
+
 func (g *GlobalRoleBinding) GetKind() string {
 	return string(g.Kind)
 }
@@ -183,6 +202,26 @@ type RoleBinding struct {
 	Kind     Kind            `json:"kind" yaml:"kind"`
 	Metadata ProjectMetadata `json:"metadata" yaml:"metadata"`
 	Spec     RoleBindingSpec `json:"spec" yaml:"spec"`
+}
+
+func (r *RoleBinding) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *RoleBinding) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *RoleBinding) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *RoleBinding) SetUserID(id int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (r *RoleBinding) UnmarshalJSON(data []byte) error {

@@ -53,11 +53,12 @@ func (e *endpoint) proxyUnsavedProjectDatasource(ctx echo.Context) error {
 		dtsName = body.Spec.Display.Name
 	}
 
+	ownerName := ctx.Param(utils.ParamOwner)
 	return e.proxyProjectDatasource(ctx, projectName, dtsName, body.Spec, func(name string) (*v1.SecretSpec, error) {
 		if err := e.checkPermission(ctx, projectName, role.SecretScope, role.ReadAction); err != nil {
 			return nil, err
 		}
-		return e.getProjectSecret(projectName, dtsName, name)
+		return e.getProjectSecret(ownerName, projectName, dtsName, name)
 	})
 }
 
@@ -68,18 +69,30 @@ func (e *endpoint) proxySavedProjectDatasource(ctx echo.Context) error {
 	}
 
 	dtsName := ctx.Param(utils.ParamName)
-	dts, err := e.getProjectDatasource(projectName, dtsName)
+	ownerName := ctx.Param(utils.ParamOwner)
+	dts, err := e.getProjectDatasource(ownerName, projectName, dtsName)
 	if err != nil {
 		return err
 	}
 
 	return e.proxyProjectDatasource(ctx, projectName, dtsName, dts, func(name string) (*v1.SecretSpec, error) {
-		return e.getProjectSecret(projectName, dtsName, name)
+		return e.getProjectSecret(ownerName, projectName, dtsName, name)
 	})
 }
 
-func (e *endpoint) getProjectDatasource(projectName string, name string) (datasource.Spec, error) {
-	dts, err := e.dts.Get(projectName, name)
+func (e *endpoint) getProjectDatasource(ownerName, projectName string, name string) (datasource.Spec, error) {
+	// Fix me: use ProjectID
+	project, err := e.project.GetByNameAndUser(projectName, ownerName)
+	if err != nil {
+		if databaseModel.IsKeyNotFound(err) {
+			logrus.Debugf("unable to find the Project %q", projectName)
+			return datasource.Spec{}, apiinterface.HandleNotFoundError(fmt.Sprintf("unable to forward the request to the datasource %q, project %q doesn't exist", name, projectName))
+		}
+		logrus.WithError(err).Errorf("unable to find the project %q, something wrong with the database", projectName)
+		return datasource.Spec{}, apiinterface.InternalError
+	}
+
+	dts, err := e.dts.Get(project.GetMetadata().GetProjectID(), name)
 	if err != nil {
 		if databaseModel.IsKeyNotFound(err) {
 			logrus.Debugf("unable to find the Datasource %q in project %q", name, projectName)
@@ -91,8 +104,14 @@ func (e *endpoint) getProjectDatasource(projectName string, name string) (dataso
 	return dts.Spec, nil
 }
 
-func (e *endpoint) getProjectSecret(projectName string, dtsName string, name string) (*v1.SecretSpec, error) {
-	scrt, err := e.secret.Get(projectName, name)
+func (e *endpoint) getProjectSecret(ownerName, projectName string, dtsName string, name string) (*v1.SecretSpec, error) {
+	// Fix me: use ProjectID
+	project, err := e.project.GetByNameAndUser(projectName, ownerName)
+	fmt.Printf("getProjectDatasource project: %+v\n", project)
+	if err != nil {
+		return nil, err
+	}
+	scrt, err := e.secret.Get(project.GetMetadata().GetProjectID(), name)
 	if err != nil {
 		if databaseModel.IsKeyNotFound(err) {
 			logrus.Debugf("unable to find the Datasource %q", name)

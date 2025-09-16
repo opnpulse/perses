@@ -18,6 +18,8 @@ package project
 import (
 	"fmt"
 
+	databaseModel "github.com/perses/perses/internal/api/database/model"
+
 	"github.com/labstack/echo/v4"
 	"github.com/perses/perses/internal/api/authorization"
 	"github.com/perses/perses/internal/api/interface/v1/project"
@@ -30,22 +32,27 @@ import (
 type endpoint struct {
 	toolbox  toolbox.Toolbox[*v1.Project, *project.Query]
 	readonly bool
+	dao      databaseModel.DAO
 }
 
-func NewEndpoint(service project.Service, authz authorization.Authorization, readonly bool, caseSensitive bool) route.Endpoint {
+func NewEndpoint(service project.Service, authz authorization.Authorization, readonly bool, caseSensitive bool, dao databaseModel.DAO) route.Endpoint {
 	return &endpoint{
-		toolbox:  toolbox.New[*v1.Project, *v1.Project, *project.Query](service, authz, v1.KindProject, caseSensitive),
+		toolbox:  toolbox.New[*v1.Project, *v1.Project, *project.Query](service, authz, v1.KindProject, caseSensitive, dao),
 		readonly: readonly,
+		dao:      dao,
 	}
 }
 
 func (e *endpoint) CollectRoutes(g *route.Group) {
-	group := g.Group(fmt.Sprintf("/%s", utils.PathProject))
+	// Define the prefix with owner parameter
+	ownerPrefix := fmt.Sprintf("/%s/:%s", utils.PathOwner, utils.ParamOwner)
+
+	group := g.Group(ownerPrefix + fmt.Sprintf("/%s", utils.PathProject))
 
 	if !e.readonly {
 		group.POST("", e.Create, false)
 		group.PUT(fmt.Sprintf("/:%s", utils.ParamName), e.Update, false)
-		group.DELETE(fmt.Sprintf("/:%s", utils.ParamName), e.Delete, false)
+		group.DELETE(fmt.Sprintf("/:%s", utils.ParamProject), e.Delete, false)
 	}
 	group.GET("", e.List, false)
 	group.GET(fmt.Sprintf("/:%s", utils.ParamName), e.Get, false)

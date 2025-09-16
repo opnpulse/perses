@@ -1,4 +1,4 @@
-// Copyright The Perses Authors
+// Copyright 2023 The Perses Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package role
+package accesstoken
 
 import (
 	"encoding/json"
@@ -24,12 +24,9 @@ import (
 
 type Query struct {
 	databaseModel.Query
-	// NamePrefix is a prefix of the Role.metadata.name that is used to filter the list of the Role.
-	// NamePrefix can be empty in case you want to return the full list of Role available.
-	NamePrefix string `query:"name"`
-	// Project is the exact name of the project.
-	// The value can come from the path of the URL or from the query parameter
-	Project      string `param:"project" query:"project"`
+	// NamePrefix is a prefix of the User.metadata.name that is used to filter the list of the User.
+	// NamePrefix can be empty in case you want to return the full list of User available.
+	NamePrefix   string `query:"name"`
 	MetadataOnly bool   `query:"metadata_only"`
 }
 
@@ -43,19 +40,11 @@ func (q *Query) GetMetadataOnlyQueryParam() bool {
 }
 
 func (q *Query) IsRawQueryAllowed() bool {
-	return true
+	return false
 }
 
 func (q *Query) IsRawMetadataQueryAllowed() bool {
 	return true
-}
-
-func (q *Query) GetProjectQueryParam() string {
-	return q.Project
-}
-
-func (q *Query) SetProjectQueryParam(project string) {
-	q.Project = project
 }
 
 func (q *Query) SetUserID(userID int64) {
@@ -65,17 +54,16 @@ func (q *Query) SetProjectID(projectID int64) {
 }
 
 type DAO interface {
-	Create(entity *v1.Role) error
-	Update(entity *v1.Role) error
-	Delete(project string, name string) error
-	DeleteAll(project string) error
-	Get(project string, name string) (*v1.Role, error)
-	List(q *Query) ([]*v1.Role, error)
-	RawList(q *Query) ([]json.RawMessage, error)
+	Create(entity *v1.AccessToken) error
+	Update(entity *v1.AccessToken) error
+	Delete(name string) error
+	Get(name string) (*v1.AccessToken, error)
+	GetByID(id int64) (*v1.AccessToken, error)
+	List(q *Query) ([]*v1.AccessToken, error)
 	MetadataList(q *Query) ([]api.Entity, error)
 	RawMetadataList(q *Query) ([]json.RawMessage, error)
 }
 
 type Service interface {
-	apiInterface.Service[*v1.Role, *v1.Role, *Query]
+	apiInterface.Service[*v1.AccessToken, *v1.AccessToken, *Query]
 }

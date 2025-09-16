@@ -54,11 +54,12 @@ func (e *endpoint) proxyUnsavedDashboardDatasource(ctx echo.Context) error {
 		dtsName = body.Spec.Display.Name
 	}
 
+	ownerName := ctx.Param(utils.ParamOwner)
 	return e.proxyDashboardDatasource(ctx, projectName, dtsName, body.Spec, func(name string) (*v1.SecretSpec, error) {
 		if err := e.checkPermission(ctx, projectName, role.SecretScope, role.ReadAction); err != nil {
 			return nil, err
 		}
-		return e.getProjectSecret(projectName, dtsName, name)
+		return e.getProjectSecret(ownerName, projectName, dtsName, name)
 	})
 }
 
@@ -76,13 +77,15 @@ func (e *endpoint) proxySavedDashboardDatasource(ctx echo.Context) error {
 		return err
 	}
 
+	ownerName := ctx.Param(utils.ParamOwner)
 	return e.proxyDashboardDatasource(ctx, projectName, dtsName, dts, func(name string) (*v1.SecretSpec, error) {
-		return e.getProjectSecret(projectName, dtsName, name)
+		return e.getProjectSecret(ownerName, projectName, dtsName, name)
 	})
 }
 
 func (e *endpoint) getDashboardDatasource(projectName string, dashboardName string, name string) (datasource.Spec, error) {
-	db, err := e.dashboard.Get(projectName, dashboardName)
+	// Fix me: use ProjectID, folderID
+	db, err := e.dashboard.Get(0, 0, dashboardName)
 	if err != nil {
 		if databaseModel.IsKeyNotFound(err) {
 			logrus.Debugf("unable to find the Dashboard %q in project %q", dashboardName, projectName)

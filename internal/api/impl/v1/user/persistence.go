@@ -55,6 +55,12 @@ func (d *dao) Get(name string) (*v1.User, error) {
 	return entity, d.client.Get(d.kind, v1.NewMetadata(name), entity)
 }
 
+func (d *dao) GetByID(id int64) (*v1.User, error) {
+	entity := &v1.User{}
+
+	return entity, d.client.Get(d.kind, &v1.Metadata{UserID: id}, entity)
+}
+
 func (d *dao) List(q *user.Query) ([]*v1.User, error) {
 	var result []*v1.User
 	err := d.client.Query(q, &result)
@@ -73,4 +79,14 @@ func (d *dao) MetadataList(q *user.Query) ([]api.Entity, error) {
 
 func (d *dao) RawMetadataList(q *user.Query) ([]json.RawMessage, error) {
 	return d.client.RawMetadataQuery(q, d.kind)
+}
+
+func (d *dao) GetAllOrganizationsOfAnUser(userName string) ([]*v1.User, error) {
+	var result []*v1.User
+	q := &user.Query{
+		AllOrgs:    true,
+		NamePrefix: userName,
+	}
+	err := d.client.Query(q, &result)
+	return result, err
 }

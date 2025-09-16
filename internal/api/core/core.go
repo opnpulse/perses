@@ -98,8 +98,8 @@ func New(conf config.Config, enablePprof bool, registry *prometheus.Registry, ba
 				// When serving the plugins from a dev server, we don't want to compress the response since it's already compressed by rsbuild.
 				(conf.Plugin.EnableDev && strings.HasPrefix(c.Request().URL.Path, fmt.Sprintf("%s/plugins", conf.APIPrefix)))
 		}).
-		Middleware(middleware.HandleError()).
-		Middleware(middleware.CheckProject(dependencyManager.Service().GetProject()))
+		Middleware(middleware.HandleError())
+	//Middleware(middleware.CheckProject(dependencyManager.Service().GetProject()))
 	if !conf.Frontend.Disable {
 		runner.HTTPServerBuilder().APIRegistration(persesFrontend)
 	}

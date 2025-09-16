@@ -16,9 +16,12 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+
+	databaseModel "github.com/perses/perses/internal/api/database/model"
 
 	"github.com/labstack/echo/v4"
 	"github.com/perses/perses/internal/api/authorization"
@@ -38,9 +41,9 @@ type endpoint struct {
 	caseSensitive bool
 }
 
-func NewEndpoint(service user.Service, authz authorization.Authorization, disableSignUp bool, readonly bool, caseSensitive bool) route.Endpoint {
+func NewEndpoint(service user.Service, authz authorization.Authorization, disableSignUp bool, readonly bool, caseSensitive bool, dao databaseModel.DAO) route.Endpoint {
 	return &endpoint{
-		toolbox:       toolbox.New[*v1.User, *v1.PublicUser, *user.Query](service, authz, v1.KindUser, caseSensitive),
+		toolbox:       toolbox.New[*v1.User, *v1.PublicUser, *user.Query](service, authz, v1.KindUser, caseSensitive, dao),
 		authz:         authz,
 		readonly:      readonly,
 		disableSignUp: disableSignUp,
@@ -49,25 +52,21 @@ func NewEndpoint(service user.Service, authz authorization.Authorization, disabl
 }
 
 func (e *endpoint) CollectRoutes(g *route.Group) {
-	// General users group is used for general manipulation of users
-	// It's used with /api/v1/users/{user}/... paths
-	generalUsersGroup := g.Group(fmt.Sprintf("/%s", utils.PathUser))
+	g.GET("/user", e.GetUser, false)
+	group := g.Group(fmt.Sprintf("/%s", utils.PathUser))
 
 	if !e.readonly {
 		if !e.disableSignUp {
-			generalUsersGroup.POST("", e.Create, true)
+			group.POST("", e.Create, true)
 		}
-		generalUsersGroup.PUT(fmt.Sprintf("/:%s", utils.ParamName), e.Update, false)
-		generalUsersGroup.DELETE(fmt.Sprintf("/:%s", utils.ParamName), e.Delete, false)
+		group.PUT(fmt.Sprintf("/:%s", utils.ParamName), e.Update, false)
+		group.DELETE(fmt.Sprintf("/:%s", utils.ParamName), e.Delete, false)
 	}
-	generalUsersGroup.GET("", e.List, false)
-	generalUsersGroup.GET(fmt.Sprintf("/:%s", utils.ParamName), e.Get, false)
-	generalUsersGroup.GET(fmt.Sprintf("/:%s/permissions", utils.ParamName), e.GetPermissions, false)
+	group.GET("", e.List, false)
+	group.GET(fmt.Sprintf("/:%s", utils.ParamName), e.Get, false)
+	group.GET(fmt.Sprintf("/:%s/permissions", utils.ParamName), e.GetPermissions, false)
 
-	// Current user group is used for operations on the current authenticated user
-	// It's used with /api/v1/user/... paths
-	currentUserGroup := g.Group(fmt.Sprintf("/%s", utils.PathCurrentUser))
-	currentUserGroup.GET(fmt.Sprintf("/%s", utils.PathWhoAmI), e.WhoAmI, false)
+	group.GET(fmt.Sprintf("/:%s/orgs", utils.ParamName), e.GetOrgs, false)
 }
 
 func (e *endpoint) Create(ctx echo.Context) error {
@@ -129,4 +128,19 @@ func (e *endpoint) GetPermissions(ctx echo.Context) error {
 		return err
 	}
 	return ctx.JSON(http.StatusOK, permissions)
+}
+
+func (e *endpoint) GetOrgs(ctx echo.Context) error {
+	q := &user.Query{
+		AllOrgs: true,
+	}
+	return e.toolbox.List(ctx, q)
+}
+
+func (e *endpoint) GetUser(ctx echo.Context) error {
+	persesUser, ok := ctx.Get("perses-user").(*v1.User)
+	if !ok {
+		return apiinterface.HandleError(errors.New("user not found"))
+	}
+	return ctx.JSON(http.StatusOK, persesUser)
 }

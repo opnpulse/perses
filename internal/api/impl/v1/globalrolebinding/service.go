@@ -124,6 +124,10 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.GlobalRoleBinding
 	return s.dao.Get(parameters.Name)
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.GlobalRoleBinding, error) {
+	return s.dao.Get(parameters.Name)
+}
+
 func (s *service) List(q *globalrolebinding.Query) ([]*v1.GlobalRoleBinding, error) {
 	return s.dao.List(q)
 }

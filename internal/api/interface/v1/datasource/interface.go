@@ -31,6 +31,14 @@ type Query struct {
 	Kind string `query:"kind"`
 	// Default will filter the list of datasource and return only the default datasource, whatever the kind of the datasource is.
 	Default *bool `query:"default"`
+
+	UserID    int64 `param:"userID" query:"userID"`
+	ProjectID int64 `param:"projectID" query:"projectID"`
+}
+
+func (q *Query) SetFolderID(folderID int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (q *Query) GetMetadataOnlyQueryParam() bool {
@@ -53,12 +61,20 @@ func (q *Query) SetProjectQueryParam(project string) {
 	q.Project = project
 }
 
+func (q *Query) SetUserID(userID int64) {
+	q.UserID = userID
+}
+
+func (q *Query) SetProjectID(projectID int64) {
+	q.ProjectID = projectID
+}
+
 type DAO interface {
 	Create(entity *v1.Datasource) error
 	Update(entity *v1.Datasource) error
-	Delete(project string, name string) error
+	Delete(projectID int64, name string) error
 	DeleteAll(project string) error
-	Get(project string, name string) (*v1.Datasource, error)
+	Get(projectID int64, name string) (*v1.Datasource, error)
 	List(q *Query) ([]*v1.Datasource, error)
 }
 

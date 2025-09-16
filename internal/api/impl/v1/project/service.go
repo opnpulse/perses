@@ -86,11 +86,11 @@ func (s *service) create(ctx echo.Context, entity *v1.Project) (*v1.Project, err
 	}
 
 	// If authorization is enabled, permissions to the creator need to be given
-	if s.authz.IsEnabled() && s.authz.IsNativeAuthz() {
-		if err := s.createProjectRoleAndRoleBinding(ctx, entity.Metadata.Name); err != nil {
-			return nil, err
-		}
-	}
+	//if s.authz.IsEnabled() {
+	//	if err := s.createProjectRoleAndRoleBinding(ctx, entity.Metadata.Name); err != nil {
+	//		return nil, err
+	//	}
+	//}
 	return entity, nil
 }
 
@@ -149,45 +149,50 @@ func (s *service) update(entity *v1.Project, parameters apiInterface.Parameters)
 }
 
 func (s *service) Delete(_ echo.Context, parameters apiInterface.Parameters) error {
-	projectName := parameters.Name
-	if err := s.folderDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all folders")
-		return err
-	}
-	if err := s.dashboardDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all dashboards")
-		return err
-	}
-	if err := s.datasourceDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all datasources")
-		return err
-	}
-	if err := s.secretDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all secrets")
-		return err
-	}
-	if err := s.variableDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all variables")
-		return err
-	}
-	if err := s.roleBindingDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all roleBindings")
-		return err
-	}
-	if err := s.roleDAO.DeleteAll(projectName); err != nil {
-		logrus.WithError(err).Error("unable to delete all roles")
-		return err
-	}
-	if s.authz.IsEnabled() {
-		if err := s.authz.RefreshPermissions(); err != nil {
-			return err
-		}
-	}
-	return s.dao.Delete(parameters.Name)
+	//projectName := parameters.Name
+	//if err := s.folderDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all folders")
+	//	return err
+	//}
+	//if err := s.dashboardDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all dashboards")
+	//	return err
+	//}
+	//if err := s.datasourceDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all datasources")
+	//	return err
+	//}
+	//if err := s.secretDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all secrets")
+	//	return err
+	//}
+	//if err := s.variableDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all variables")
+	//	return err
+	//}
+	//if err := s.roleBindingDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all roleBindings")
+	//	return err
+	//}
+	//if err := s.roleDAO.DeleteAll(projectName); err != nil {
+	//	logrus.WithError(err).Error("unable to delete all roles")
+	//	return err
+	//}
+	//if s.authz.IsEnabled() {
+	//	if err := s.authz.RefreshPermissions(); err != nil {
+	//		return err
+	//	}
+	//}
+
+	return s.dao.Delete(parameters.Project, parameters.UserID)
 }
 
 func (s *service) Get(parameters apiInterface.Parameters) (*v1.Project, error) {
-	return s.dao.Get(parameters.Name)
+	return s.dao.GetByNameAndUser(parameters.Name, parameters.Owner)
+}
+
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Project, error) {
+	return s.dao.GetByNameAndUser(parameters.Name, parameters.UserName)
 }
 
 func (s *service) List(q *project.Query) ([]*v1.Project, error) {

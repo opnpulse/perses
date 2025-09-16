@@ -18,6 +18,8 @@ package dashboard
 import (
 	"fmt"
 
+	databaseModel "github.com/perses/perses/internal/api/database/model"
+
 	"github.com/labstack/echo/v4"
 	"github.com/perses/perses/internal/api/authorization"
 	"github.com/perses/perses/internal/api/interface/v1/dashboard"
@@ -30,27 +32,47 @@ import (
 type endpoint struct {
 	toolbox  toolbox.Toolbox[*v1.Dashboard, *dashboard.Query]
 	readonly bool
+	dao      databaseModel.DAO
 }
 
-func NewEndpoint(service dashboard.Service, authz authorization.Authorization, readonly bool, caseSensitive bool) route.Endpoint {
+func NewEndpoint(service dashboard.Service, authz authorization.Authorization, readonly bool, caseSensitive bool, dao databaseModel.DAO) route.Endpoint {
 	return &endpoint{
-		toolbox:  toolbox.New[*v1.Dashboard, *v1.Dashboard, *dashboard.Query](service, authz, v1.KindDashboard, caseSensitive),
+		toolbox:  toolbox.New[*v1.Dashboard, *v1.Dashboard, *dashboard.Query](service, authz, v1.KindDashboard, caseSensitive, dao),
 		readonly: readonly,
+		dao:      dao,
 	}
 }
 
 func (e *endpoint) CollectRoutes(g *route.Group) {
-	group := g.Group(fmt.Sprintf("/%s", utils.PathDashboard))
-	subGroup := g.Group(fmt.Sprintf("/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathDashboard))
+	// Define the prefix with owner parameter
+	ownerPrefix := fmt.Sprintf("/%s/:%s", utils.PathOwner, utils.ParamOwner)
+
+	group := g.Group(ownerPrefix + fmt.Sprintf("/%s", utils.PathDashboard))
+	subGroup := g.Group(ownerPrefix + fmt.Sprintf("/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathDashboard))
+
+	tokenGroup := g.Group(fmt.Sprintf("/%s/:%s/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathFolder, utils.ParamFolder, utils.PathDashboard))
+
+	folderGroup := g.Group(ownerPrefix + fmt.Sprintf("/%s/:%s/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathFolder, utils.ParamFolder, utils.PathDashboard))
 	if !e.readonly {
 		group.POST("", e.Create, false)
 		subGroup.POST("", e.Create, false)
 		subGroup.PUT(fmt.Sprintf("/:%s", utils.ParamName), e.Update, false)
 		subGroup.DELETE(fmt.Sprintf("/:%s", utils.ParamName), e.Delete, false)
+
+		folderGroup.POST("", e.Create, false)
+		folderGroup.PUT(fmt.Sprintf("/:%s", utils.ParamName), e.Update, false)
+		folderGroup.DELETE(fmt.Sprintf("/:%s", utils.ParamName), e.Delete, false)
+
+		tokenGroup.POST("", e.Create, false)
+		tokenGroup.PUT(fmt.Sprintf("/:%s", utils.ParamName), e.Update, false)
+		tokenGroup.DELETE(fmt.Sprintf("/:%s", utils.ParamName), e.Delete, false)
 	}
 	group.GET("", e.List, false)
 	subGroup.GET("", e.List, false)
 	subGroup.GET(fmt.Sprintf("/:%s", utils.ParamName), e.Get, false)
+
+	folderGroup.GET("", e.List, false)
+	folderGroup.GET(fmt.Sprintf("/:%s", utils.ParamName), e.Get, false)
 }
 
 func (e *endpoint) Create(ctx echo.Context) error {

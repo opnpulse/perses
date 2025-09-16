@@ -104,6 +104,14 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.PublicGlobalSecre
 	return v1.NewPublicGlobalSecret(scrt), nil
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.PublicGlobalSecret, error) {
+	scrt, err := s.dao.Get(parameters.Name)
+	if err != nil {
+		return nil, err
+	}
+	return v1.NewPublicGlobalSecret(scrt), nil
+}
+
 func (s *service) List(q *globalsecret.Query) ([]*v1.PublicGlobalSecret, error) {
 	l, err := s.dao.List(q)
 	if err != nil {

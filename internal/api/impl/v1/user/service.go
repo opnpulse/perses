@@ -67,9 +67,9 @@ func (s *service) create(entity *v1.User) (*v1.PublicUser, error) {
 		return nil, createErr
 	}
 	// Refreshing RBAC cache as the user's associated role may be updated, which can add or remove permissions.
-	if err := s.authz.RefreshPermissions(); err != nil {
-		logrus.WithError(err).Error("failed to refresh RBAC cache")
-	}
+	//if err := s.authz.RefreshPermissions(); err != nil {
+	//	logrus.WithError(err).Error("failed to refresh RBAC cache")
+	//}
 	return v1.NewPublicUser(entity), nil
 }
 
@@ -134,6 +134,14 @@ func (s *service) Delete(_ echo.Context, parameters apiInterface.Parameters) err
 }
 
 func (s *service) Get(parameters apiInterface.Parameters) (*v1.PublicUser, error) {
+	usr, err := s.dao.Get(parameters.Name)
+	if err != nil {
+		return nil, err
+	}
+	return v1.NewPublicUser(usr), nil
+}
+
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.PublicUser, error) {
 	usr, err := s.dao.Get(parameters.Name)
 	if err != nil {
 		return nil, err

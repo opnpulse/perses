@@ -98,6 +98,10 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.GlobalVariable, e
 	return s.dao.Get(parameters.Name)
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.GlobalVariable, error) {
+	return s.dao.Get(parameters.Name)
+}
+
 func (s *service) List(q *globalvariable.Query) ([]*v1.GlobalVariable, error) {
 	return s.dao.List(q)
 }

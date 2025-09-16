@@ -43,6 +43,21 @@ type PublicGlobalSecret struct {
 	Spec     PublicSecretSpec `json:"spec" yaml:"spec"`
 }
 
+func (g *PublicGlobalSecret) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *PublicGlobalSecret) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *PublicGlobalSecret) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewPublicGlobalSecret(s *GlobalSecret) *PublicGlobalSecret {
 	if s == nil {
 		return nil
@@ -58,6 +73,10 @@ func (g *PublicGlobalSecret) GetMetadata() modelAPI.Metadata {
 	return &g.Metadata
 }
 
+func (g *PublicGlobalSecret) SetUserID(id int64) {
+	g.Metadata.UserID = id
+}
+
 func (g *PublicGlobalSecret) GetKind() string {
 	return string(g.Kind)
 }
@@ -70,6 +89,21 @@ type PublicSecret struct {
 	Kind     Kind                  `json:"kind" yaml:"kind"`
 	Metadata PublicProjectMetadata `json:"metadata" yaml:"metadata"`
 	Spec     PublicSecretSpec      `json:"spec" yaml:"spec"`
+}
+
+func (p *PublicSecret) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PublicSecret) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PublicSecret) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewPublicSecret(s *Secret) *PublicSecret {
@@ -93,4 +127,8 @@ func (s *PublicSecret) GetKind() string {
 
 func (s *PublicSecret) GetSpec() any {
 	return s.Spec
+}
+
+func (g *PublicSecret) SetUserID(id int64) {
+	g.Metadata.UserID = id
 }

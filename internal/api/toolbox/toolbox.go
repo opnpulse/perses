@@ -18,6 +18,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/labstack/echo/v4"
 	"github.com/perses/perses/internal/api/authorization"
 	databaseModel "github.com/perses/perses/internal/api/database/model"
@@ -32,6 +34,8 @@ import (
 func ExtractParameters(ctx echo.Context, caseSensitive bool) apiInterface.Parameters {
 	project := utils.GetProjectParameter(ctx)
 	name := utils.GetNameParameter(ctx)
+	owner := utils.GetOwnerParameter(ctx)
+	folder := utils.GetFolderParameter(ctx)
 	if !caseSensitive {
 		project = strings.ToLower(project)
 		name = strings.ToLower(name)
@@ -39,6 +43,8 @@ func ExtractParameters(ctx echo.Context, caseSensitive bool) apiInterface.Parame
 	return apiInterface.Parameters{
 		Project: project,
 		Name:    name,
+		Owner:   owner,
+		Folder:  folder,
 	}
 }
 
@@ -60,13 +66,17 @@ type Toolbox[T api.Entity, K databaseModel.Query] interface {
 	List(ctx echo.Context, q K) error
 }
 
-func New[T api.Entity, K api.Entity, V databaseModel.Query](service apiInterface.Service[T, K, V], authz authorization.Authorization, kind v1.Kind, caseSensitive bool) Toolbox[T, V] {
-	return &toolbox[T, K, V]{
+func New[T api.Entity, K api.Entity, V databaseModel.Query](service apiInterface.Service[T, K, V], authz authorization.Authorization, kind v1.Kind, caseSensitive bool, dao ...databaseModel.DAO) Toolbox[T, V] {
+	t := &toolbox[T, K, V]{
 		service:       service,
 		authz:         authz,
 		kind:          kind,
 		caseSensitive: caseSensitive,
 	}
+	if len(dao) > 0 {
+		t.dao = dao[0]
+	}
+	return t
 }
 
 type toolbox[T api.Entity, K api.Entity, V databaseModel.Query] struct {
@@ -75,6 +85,7 @@ type toolbox[T api.Entity, K api.Entity, V databaseModel.Query] struct {
 	authz         authorization.Authorization
 	kind          v1.Kind
 	caseSensitive bool
+	dao           databaseModel.DAO
 }
 
 // checkPermissionList will verify only the permission for the List method. As you can see, scope is hardcoded.
@@ -148,10 +159,17 @@ func (t *toolbox[T, K, V]) Create(ctx echo.Context, entity T) error {
 	if err := t.bind(ctx, entity); err != nil {
 		return err
 	}
+
 	parameters := ExtractParameters(ctx, t.caseSensitive)
-	if err := t.checkPermission(ctx, entity, parameters, role.CreateAction); err != nil {
+	//if err := t.checkPermission(ctx, entity, parameters, role.CreateAction); err != nil {
+	//	return err
+	//}
+	//
+
+	if err := t.setValuesToEntity(ctx, &parameters, entity); err != nil {
 		return err
 	}
+
 	newEntity, err := t.service.Create(ctx, entity)
 	if err != nil {
 		return err
@@ -164,9 +182,17 @@ func (t *toolbox[T, K, V]) Update(ctx echo.Context, entity T) error {
 		return err
 	}
 	parameters := ExtractParameters(ctx, t.caseSensitive)
-	if err := t.checkPermission(ctx, entity, parameters, role.UpdateAction); err != nil {
+	//if err := t.checkPermission(ctx, entity, parameters, role.UpdateAction); err != nil {
+	//	return err
+	//}
+
+	if err := t.setValuesToEntity(ctx, &parameters, entity); err != nil {
 		return err
 	}
+	if err := t.setValuesToParameters(ctx, &parameters); err != nil {
+		return err
+	}
+
 	newEntity, err := t.service.Update(ctx, entity, parameters)
 	if err != nil {
 		return err
@@ -176,7 +202,11 @@ func (t *toolbox[T, K, V]) Update(ctx echo.Context, entity T) error {
 
 func (t *toolbox[T, K, V]) Delete(ctx echo.Context) error {
 	parameters := ExtractParameters(ctx, t.caseSensitive)
-	if err := t.checkPermission(ctx, nil, parameters, role.DeleteAction); err != nil {
+	//if err := t.checkPermission(ctx, nil, parameters, role.DeleteAction); err != nil {
+	//	return err
+	//}
+
+	if err := t.setValuesToParameters(ctx, &parameters); err != nil {
 		return err
 	}
 	if err := t.service.Delete(ctx, parameters); err != nil {
@@ -187,9 +217,14 @@ func (t *toolbox[T, K, V]) Delete(ctx echo.Context) error {
 
 func (t *toolbox[T, K, V]) Get(ctx echo.Context) error {
 	parameters := ExtractParameters(ctx, t.caseSensitive)
-	if err := t.checkPermission(ctx, nil, parameters, role.ReadAction); err != nil {
+	//if err := t.checkPermission(ctx, nil, parameters, role.ReadAction); err != nil {
+	//	return err
+	//}
+
+	if err := t.setValuesToParameters(ctx, &parameters); err != nil {
 		return err
 	}
+
 	entity, err := t.service.Get(parameters)
 	if err != nil {
 		return err
@@ -202,6 +237,10 @@ func (t *toolbox[T, K, V]) List(ctx echo.Context, query V) error {
 		return apiInterface.HandleBadRequestError(err.Error())
 	}
 	parameters := ExtractParameters(ctx, t.caseSensitive)
+
+	if err := t.setValuesToParameters(ctx, &parameters); err != nil {
+		return err
+	}
 
 	list, listErr := t.list(ctx, parameters, query)
 	if listErr != nil {
@@ -258,6 +297,148 @@ func (t *toolbox[T, K, V]) validateMetadataVersusParameter(ctx echo.Context, par
 			if *metadataValue != paramValue {
 				return fmt.Errorf("%s parameter value '%s' does not match provided metadata value '%s'", paramName, paramValue, *metadataValue)
 			}
+		}
+	}
+	return nil
+}
+
+func (t *toolbox[T, K, V]) getUserIDAndType(ctx echo.Context) (int64, string, error) {
+	owner, ok := ctx.Get("owner").(*v1.User)
+	if ok {
+		userID, userType, err := t.dao.GetIDAndType(v1.NewMetadata(owner.Metadata.Name))
+		if err != nil {
+			return 0, "", err
+		}
+
+		return userID, userType, nil
+	}
+
+	persesOrg, ok := ctx.Get("perses-org").(*v1.User)
+	if ok {
+		userID, userType, err := t.dao.GetIDAndType(v1.NewMetadata(persesOrg.Metadata.Name))
+		if err != nil {
+			return 0, "", err
+		}
+
+		return userID, userType, nil
+	}
+
+	persesUser, ok := ctx.Get("perses-user").(*v1.User)
+	if ok {
+		userID, userType, err := t.dao.GetIDAndType(v1.NewMetadata(persesUser.Metadata.Name))
+		if err != nil {
+			return 0, "", err
+		}
+
+		return userID, userType, nil
+	}
+
+	// Extract user ID from JWT token
+	token, ok := ctx.Get("user").(*jwt.Token)
+	if !ok {
+		return 0, "", apiInterface.UnauthorizedError
+	}
+
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return 0, "", apiInterface.UnauthorizedError
+	}
+
+	// Get username from the "sub" claim
+	login := claims.Subject
+	if login == "" {
+		return 0, "", apiInterface.UnauthorizedError
+	}
+
+	if t.dao == nil {
+		return 0, "", apiInterface.BadRequestError
+	}
+	userID, userType, err := t.dao.GetIDAndType(v1.NewMetadata(login))
+	if err != nil {
+		return 0, "", err
+	}
+
+	if userID == 0 {
+		return 0, "", apiInterface.UnauthorizedError
+	}
+
+	return userID, userType, nil
+}
+
+func (t *toolbox[T, K, V]) getOwnerID(ctx echo.Context) (int64, error) {
+	_, _, err := t.getUserIDAndType(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return 0, nil
+}
+
+func (t *toolbox[T, K, V]) setValuesToEntity(ctx echo.Context, parameters *apiInterface.Parameters, entity T) error {
+	if entity.GetKind() != string(v1.KindUser) {
+		userID, _, err := t.getUserIDAndType(ctx)
+		if err != nil {
+			return err
+		}
+		if meta := entity.GetMetadata(); meta != nil {
+			entity.SetUserID(userID)
+			parameters.UserID = userID
+		}
+	}
+
+	if parameters.Project != "" {
+		projectMetadata := v1.NewMetadata(parameters.Project)
+		userID, _, err := t.getUserIDAndType(ctx)
+		if err != nil {
+			return err
+		}
+
+		projectMetadata.UserID = userID
+		projectID, err := t.dao.GetProjectID(projectMetadata)
+		if err != nil {
+			return err
+		}
+		entity.SetProjectID(projectID)
+		parameters.ProjectID = projectID
+
+		if parameters.Folder != "" {
+			folderMetadata := v1.NewMetadata(parameters.Folder)
+			folderMetadata.ProjectID = projectID
+			folderID, err := t.dao.GetFolderID(folderMetadata)
+			if err != nil {
+				return err
+			}
+			entity.SetFolderID(folderID)
+		}
+	}
+	return nil
+}
+
+func (t *toolbox[T, K, V]) setValuesToParameters(ctx echo.Context, parameters *apiInterface.Parameters) error {
+	userID, _, err := t.getUserIDAndType(ctx)
+	if err != nil {
+		return err
+	}
+	parameters.UserID = userID
+
+	if parameters.Project != "" {
+		projectMetadata := v1.NewMetadata(parameters.Project)
+		projectMetadata.UserID = userID
+
+		projectID, err := t.dao.GetProjectID(projectMetadata)
+		if err != nil {
+			return err
+		}
+		parameters.ProjectID = projectID
+
+		if parameters.Folder != "" {
+			folderMetadata := v1.NewMetadata(parameters.Folder)
+			folderMetadata.ProjectID = projectID
+			folderID, err := t.dao.GetFolderID(folderMetadata)
+			if err != nil {
+				return err
+			}
+			parameters.FolderID = folderID
 		}
 	}
 	return nil

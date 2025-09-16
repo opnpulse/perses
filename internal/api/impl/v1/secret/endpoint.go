@@ -20,6 +20,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/perses/perses/internal/api/authorization"
+	databaseModel "github.com/perses/perses/internal/api/database/model"
 	"github.com/perses/perses/internal/api/interface/v1/secret"
 	"github.com/perses/perses/internal/api/route"
 	"github.com/perses/perses/internal/api/toolbox"
@@ -30,18 +31,23 @@ import (
 type endpoint struct {
 	toolbox  toolbox.Toolbox[*v1.Secret, *secret.Query]
 	readonly bool
+	dao      databaseModel.DAO
 }
 
-func NewEndpoint(service secret.Service, authz authorization.Authorization, readonly bool, caseSensitive bool) route.Endpoint {
+func NewEndpoint(service secret.Service, authz authorization.Authorization, readonly bool, caseSensitive bool, dao databaseModel.DAO) route.Endpoint {
 	return &endpoint{
-		toolbox:  toolbox.New[*v1.Secret, *v1.PublicSecret, *secret.Query](service, authz, v1.KindSecret, caseSensitive),
+		toolbox:  toolbox.New[*v1.Secret, *v1.PublicSecret, *secret.Query](service, authz, v1.KindSecret, caseSensitive, dao),
 		readonly: readonly,
+		dao:      dao,
 	}
 }
 
 func (e *endpoint) CollectRoutes(g *route.Group) {
-	group := g.Group(fmt.Sprintf("/%s", utils.PathSecret))
-	subGroup := g.Group(fmt.Sprintf("/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathSecret))
+	// Define the prefix with owner parameter
+	ownerPrefix := fmt.Sprintf("/%s/:%s", utils.PathOwner, utils.ParamOwner)
+
+	group := g.Group(ownerPrefix + fmt.Sprintf("/%s", utils.PathSecret))
+	subGroup := g.Group(ownerPrefix + fmt.Sprintf("/%s/:%s/%s", utils.PathProject, utils.ParamProject, utils.PathSecret))
 	if !e.readonly {
 		group.POST("", e.Create, false)
 		subGroup.POST("", e.Create, false)

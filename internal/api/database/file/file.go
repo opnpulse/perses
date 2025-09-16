@@ -46,6 +46,17 @@ type DAO struct {
 	CaseSensitive bool
 }
 
+func (d *DAO) GetAccessTokenBySHA(sha string) ([]modelV1.AccessToken, error) {
+	//TODO implement me
+	panic("implement me")
+	return nil, nil
+}
+
+func (d *DAO) GetById(kind modelV1.Kind, id int64, entity modelAPI.Entity) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (d *DAO) Init() error {
 	return nil
 }
@@ -108,6 +119,21 @@ func (d *DAO) Get(kind modelV1.Kind, metadata modelAPI.Metadata, entity modelAPI
 		return &databaseModel.Error{Key: key, Code: databaseModel.ErrorCodeNotFound}
 	}
 	return nil
+}
+
+func (d *DAO) GetIDAndType(metadata modelAPI.Metadata) (int64, string, error) {
+
+	return 0, "", nil
+}
+
+func (d *DAO) GetProjectID(metadata modelAPI.Metadata) (int64, error) {
+
+	return 0, nil
+}
+
+func (d *DAO) GetFolderID(metadata modelAPI.Metadata) (int64, error) {
+
+	return 0, nil
 }
 
 func (d *DAO) RawMetadataQuery(_ databaseModel.Query, _ modelV1.Kind) ([]json.RawMessage, error) {

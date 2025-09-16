@@ -29,8 +29,25 @@ type Dashboard struct {
 	Spec     dashboardSpec.Spec `json:"spec" yaml:"spec"`
 }
 
+func (d *Dashboard) SetFolderID(id int64) {
+	d.Metadata.FolderID = id
+}
+
+func (d *Dashboard) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (d *Dashboard) GetMetadata() modelAPI.Metadata {
 	return &d.Metadata
+}
+
+func (d *Dashboard) SetUserID(id int64) {
+	d.Metadata.UserID = id
+}
+
+func (d *Dashboard) SetProjectID(id int64) {
+	d.Metadata.ProjectID = id
 }
 
 func (d *Dashboard) GetKind() string {

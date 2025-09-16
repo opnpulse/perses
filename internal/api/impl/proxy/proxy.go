@@ -39,6 +39,7 @@ import (
 	"github.com/perses/perses/internal/api/interface/v1/datasource"
 	"github.com/perses/perses/internal/api/interface/v1/globaldatasource"
 	"github.com/perses/perses/internal/api/interface/v1/globalsecret"
+	"github.com/perses/perses/internal/api/interface/v1/project"
 	"github.com/perses/perses/internal/api/interface/v1/secret"
 	"github.com/perses/perses/internal/api/route"
 	"github.com/perses/perses/internal/api/utils"
@@ -124,6 +125,7 @@ const unsavedDatasourceDefaultName = "unsaved-datasource"
 
 type endpoint struct {
 	cfg          config.DatasourceConfig
+	project      project.DAO
 	dashboard    dashboard.DAO
 	secret       secret.DAO
 	globalSecret globalsecret.DAO
@@ -133,10 +135,11 @@ type endpoint struct {
 	authz        authorization.Authorization
 }
 
-func New(cfg config.DatasourceConfig, dashboardDAO dashboard.DAO, secretDAO secret.DAO, globalSecretDAO globalsecret.DAO,
+func New(cfg config.DatasourceConfig, projectDAO project.DAO, dashboardDAO dashboard.DAO, secretDAO secret.DAO, globalSecretDAO globalsecret.DAO,
 	dtsDAO datasource.DAO, globalDtsDAO globaldatasource.DAO, crypto crypto.Crypto, authz authorization.Authorization) route.Endpoint {
 	return &endpoint{
 		cfg:          cfg,
+		project:      projectDAO,
 		dashboard:    dashboardDAO,
 		secret:       secretDAO,
 		globalSecret: globalSecretDAO,
@@ -148,25 +151,26 @@ func New(cfg config.DatasourceConfig, dashboardDAO dashboard.DAO, secretDAO secr
 }
 
 func (e *endpoint) CollectRoutes(g *route.Group) {
+	ownerPrefix := fmt.Sprintf("/%s/:%s", utils.PathOwner, utils.ParamOwner)
 	if !e.cfg.Global.Disable {
-		g.ANY(fmt.Sprintf("/%s/:%s/*", utils.PathGlobalDatasource, utils.ParamName), e.proxySavedGlobalDatasource, false)
-		// allow direct datasource queries without extra path (e.g., from ClickHouse)
 		g.ANY(fmt.Sprintf("/%s/:%s", utils.PathGlobalDatasource, utils.ParamName), e.proxySavedGlobalDatasource, false)
+		g.ANY(fmt.Sprintf("/%s/:%s/*", utils.PathGlobalDatasource, utils.ParamName), e.proxySavedGlobalDatasource, false)
 
+		g.POST(fmt.Sprintf("/%s/%s", utils.PathUnsaved, utils.PathGlobalDatasource), e.proxyUnsavedGlobalDatasource, false)
 		g.POST(fmt.Sprintf("/%s/%s/*", utils.PathUnsaved, utils.PathGlobalDatasource), e.proxyUnsavedGlobalDatasource, false)
 	}
 	if !e.cfg.Project.Disable {
-		g.ANY(fmt.Sprintf("/%s/:%s/%s/:%s/*", utils.PathProject, utils.ParamProject, utils.PathDatasource, utils.ParamName), e.proxySavedProjectDatasource, false)
-		// allow direct datasource queries without extra path (e.g., from ClickHouse)
-		g.ANY(fmt.Sprintf("/%s/:%s/%s/:%s", utils.PathProject, utils.ParamProject, utils.PathDatasource, utils.ParamName), e.proxySavedProjectDatasource, false)
+		g.ANY(fmt.Sprintf(ownerPrefix+"/%s/:%s/%s/:%s", utils.PathProject, utils.ParamProject, utils.PathDatasource, utils.ParamName), e.proxySavedProjectDatasource, false)
+		g.ANY(fmt.Sprintf(ownerPrefix+"/%s/:%s/%s/:%s/*", utils.PathProject, utils.ParamProject, utils.PathDatasource, utils.ParamName), e.proxySavedProjectDatasource, false)
 
-		g.POST(fmt.Sprintf("/%s/%s/:%s/%s/*", utils.PathUnsaved, utils.PathProject, utils.ParamProject, utils.PathDatasource), e.proxyUnsavedProjectDatasource, false)
+		g.POST(fmt.Sprintf(ownerPrefix+"/%s/%s/:%s/%s", utils.PathUnsaved, utils.PathProject, utils.ParamProject, utils.PathDatasource), e.proxyUnsavedProjectDatasource, false)
+		g.POST(fmt.Sprintf(ownerPrefix+"/%s/%s/:%s/%s/*", utils.PathUnsaved, utils.PathProject, utils.ParamProject, utils.PathDatasource), e.proxyUnsavedProjectDatasource, false)
 	}
 	if !e.cfg.DisableLocal {
-		g.ANY(fmt.Sprintf("/%s/:%s/%s/:%s/%s/:%s/*", utils.PathProject, utils.ParamProject, utils.PathDashboard, utils.ParamDashboard, utils.PathDatasource, utils.ParamName), e.proxySavedDashboardDatasource, false)
-		// allow direct datasource queries without extra path (e.g., from ClickHouse)
 		g.ANY(fmt.Sprintf("/%s/:%s/%s/:%s/%s/:%s", utils.PathProject, utils.ParamProject, utils.PathDashboard, utils.ParamDashboard, utils.PathDatasource, utils.ParamName), e.proxySavedDashboardDatasource, false)
+		g.ANY(fmt.Sprintf("/%s/:%s/%s/:%s/%s/:%s/*", utils.PathProject, utils.ParamProject, utils.PathDashboard, utils.ParamDashboard, utils.PathDatasource, utils.ParamName), e.proxySavedDashboardDatasource, false)
 
+		g.POST(fmt.Sprintf("/%s/%s/:%s/%s/:%s/%s", utils.PathUnsaved, utils.PathProject, utils.ParamProject, utils.PathDashboard, utils.ParamDashboard, utils.PathDatasource), e.proxyUnsavedDashboardDatasource, false)
 		g.POST(fmt.Sprintf("/%s/%s/:%s/%s/:%s/%s/*", utils.PathUnsaved, utils.PathProject, utils.ParamProject, utils.PathDashboard, utils.ParamDashboard, utils.PathDatasource), e.proxyUnsavedDashboardDatasource, false)
 	}
 }
@@ -292,6 +296,14 @@ func (h *httpProxy) serve(c echo.Context) error {
 	if err := h.prepareRequest(c); err != nil {
 		h.logWithDefaultEntry().WithError(err).Error("unable to prepare the HTTP request")
 		return apiinterface.InternalError
+	}
+
+	// --- NEW CODE: Add X-Csrf-Token if _csrf cookie exists ---
+	for _, cookie := range req.Cookies() {
+		if cookie.Name == "_csrf" {
+			req.Header.Set("X-Csrf-Token", cookie.Value)
+			break
+		}
 	}
 
 	// redirect the request to the datasource

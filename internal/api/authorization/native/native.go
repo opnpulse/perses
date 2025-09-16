@@ -15,17 +15,20 @@ package native
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
+	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/perses/perses/internal/api/crypto"
 	apiInterface "github.com/perses/perses/internal/api/interface"
+	"github.com/perses/perses/internal/api/interface/v1/accesstoken"
 	"github.com/perses/perses/internal/api/interface/v1/globalrole"
 	"github.com/perses/perses/internal/api/interface/v1/globalrolebinding"
 	"github.com/perses/perses/internal/api/interface/v1/role"
@@ -38,7 +41,43 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func New(userDAO user.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
+// AceUser represents logged in b3 user in the system
+type AceUser struct {
+	// the user's id
+	ID int64 `json:"id"`
+	// the user's username
+	UserName string `json:"login"`
+	// the user's full name
+	FullName string `json:"full_name"`
+	// swagger:strfmt email
+	Email string `json:"email"`
+	// URL to the user's avatar
+	AvatarURL string `json:"avatar_url"`
+	// User locale
+	Language string `json:"language"`
+	// Is the user an administrator
+	IsAdmin bool `json:"is_admin"`
+	// swagger:strfmt date-time
+	LastLogin time.Time `json:"last_login,omitempty"`
+	// swagger:strfmt date-time
+	Created time.Time `json:"created,omitempty"`
+	// Is user restricted
+	Restricted bool `json:"restricted"`
+	// Is user active
+	IsActive bool `json:"active"`
+	// Is user login prohibited
+	ProhibitLogin bool `json:"prohibit_login"`
+	// the user's location
+	Location string `json:"location"`
+	// the user's website
+	Website string `json:"website"`
+	// the user's description
+	Description string `json:"description"`
+}
+
+const prodDomain = "appscode.com"
+
+func New(userDAO user.DAO, accessTokenDAO accesstoken.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
 	globalRoleDAO globalrole.DAO, globalRoleBindingDAO globalrolebinding.DAO, conf config.Config) (*native, error) {
 	key, err := hex.DecodeString(string(conf.Security.EncryptionKey))
 	if err != nil {
@@ -47,6 +86,7 @@ func New(userDAO user.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
 	return &native{
 		cache:                &cache{},
 		userDAO:              userDAO,
+		accessTokenDAO:       accessTokenDAO,
 		roleDAO:              roleDAO,
 		roleBindingDAO:       roleBindingDAO,
 		globalRoleDAO:        globalRoleDAO,
@@ -63,6 +103,7 @@ type native struct {
 	// cache is used to store in memory the permissions of all users.
 	cache                *cache
 	userDAO              user.DAO
+	accessTokenDAO       accesstoken.DAO
 	roleDAO              role.DAO
 	roleBindingDAO       rolebinding.DAO
 	globalRoleDAO        globalrole.DAO
@@ -92,11 +133,19 @@ func (n *native) GetUser(ctx echo.Context) (any, error) {
 	}
 	// At this point, we are sure that the context is not nil and the user is not anonymous.
 	// The user is expected to be set in the context by the middleware.
-	token, ok := ctx.Get("user").(*jwt.Token) // by default token is stored under `user` key
+	//token, ok := ctx.Get("user").(*jwt.Token) // by default token is stored under `user` key
+	//if !ok {
+	//	return nil, apiInterface.UnauthorizedError
+	//}
+
+	usr, ok := ctx.Get("perses-user").(*v1.User)
 	if !ok {
 		return nil, apiInterface.UnauthorizedError
 	}
-	return token.Claims, nil
+	if usr == nil {
+		return nil, errors.New("user not found in context")
+	}
+	return usr, nil
 }
 
 func (n *native) GetUsername(ctx echo.Context) (string, error) {
@@ -107,18 +156,13 @@ func (n *native) GetUsername(ctx echo.Context) (string, error) {
 	if usr == nil {
 		return "", nil // No user found in the context, this is an anonymous endpoint
 	}
-	return usr.(*crypto.JWTClaims).GetSubject()
+	return usr.(*v1.User).Metadata.Name, nil
 }
 
-func (n *native) GetProviderInfo(ctx echo.Context) (crypto.ProviderInfo, error) {
-	usr, err := n.GetUser(ctx)
-	if err != nil {
-		return crypto.ProviderInfo{}, err
-	}
-	if usr == nil {
-		return crypto.ProviderInfo{}, nil // No user found in the context, this is an anonymous endpoint
-	}
-	return usr.(*crypto.JWTClaims).ProviderInfo, nil
+func (n *native) GetProviderInfo(_ echo.Context) (crypto.ProviderInfo, error) {
+	// The native provider here resolves an actual *v1.User from an ACE cookie or access token
+	// rather than decoding provider metadata from a JWT, so there is no provider info to report.
+	return crypto.ProviderInfo{}, nil
 }
 
 func (n *native) GetPublicUser(ctx echo.Context) (*v1.PublicUser, error) {
@@ -135,31 +179,164 @@ func (n *native) GetPublicUser(ctx echo.Context) (*v1.PublicUser, error) {
 	return v1.NewPublicUser(user), nil
 }
 
+// Middleware2 attaches AceUser into echo.Context and rejects if not authenticated
 func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
-	jwtMiddlewareConfig := echojwt.Config{
-		Skipper: skipper,
-		BeforeFunc: func(c echo.Context) {
-			// Merge the JWT cookies if they exist to create the token,
-			// and then set the header Authorization with the complete token.
-			payloadCookie, err := c.Cookie(crypto.CookieKeyJWTPayload)
-			if errors.Is(err, http.ErrNoCookie) {
-				logrus.Tracef("cookie %q not found", crypto.CookieKeyJWTPayload)
-				return
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if skipper != nil && skipper(c) {
+				return next(c)
 			}
-			signatureCookie, err := c.Cookie(crypto.CookieKeyJWTSignature)
-			if errors.Is(err, http.ErrNoCookie) {
-				logrus.Tracef("cookie %q not found", crypto.CookieKeyJWTSignature)
-				return
+
+			var persesUser *v1.User
+			user, err := loginWithAceCookie(c.Request())
+			if err != nil || user == nil {
+				persesUser, err = loginWithAccessToken(c, n.accessTokenDAO, n.userDAO)
+				if err != nil {
+					return c.JSON(http.StatusUnauthorized, map[string]string{
+						"error": "unauthorized",
+					})
+				}
+				c.Set("perses-user", persesUser)
+
+			} else {
+				persesUser, err = n.userDAO.Get(user.UserName)
+				if err != nil {
+					return c.JSON(http.StatusUnauthorized, map[string]string{
+						"error": "unauthorized",
+					})
+				}
+				c.Set("perses-user", persesUser)
 			}
-			c.Request().Header.Set("Authorization", fmt.Sprintf("Bearer %s.%s", payloadCookie.Value, signatureCookie.Value))
-		},
-		NewClaimsFunc: func(_ echo.Context) jwt.Claims {
-			return &crypto.JWTClaims{}
-		},
-		SigningMethod: jwt.SigningMethodHS512.Name,
-		SigningKey:    n.accessKey,
+
+			if strings.HasPrefix(persesUser.Metadata.Name, v1.OrgSystemUserPrefix) {
+				orgName := strings.TrimPrefix(persesUser.Metadata.Name, v1.OrgSystemUserPrefix)
+				persesOrg, err := n.userDAO.Get(orgName)
+				if err != nil {
+					return c.JSON(http.StatusBadRequest, map[string]string{
+						"error": err.Error(),
+					})
+				}
+				c.Set("perses-org", persesOrg)
+			}
+
+			if c.Param("owner") != "" {
+				owner, err := n.userDAO.Get(c.Param("owner"))
+				if err != nil {
+					return c.JSON(http.StatusBadRequest, map[string]string{
+						"error": err.Error(),
+					})
+				}
+
+				if persesUser.Metadata.Name != owner.Metadata.Name {
+					// checking owners params
+					found := false
+					orgs, err := n.userDAO.GetAllOrganizationsOfAnUser(persesUser.Metadata.Name)
+					if err != nil {
+						return c.JSON(http.StatusBadRequest, map[string]string{
+							"error": err.Error(),
+						})
+					}
+					for _, org := range orgs {
+						if org.Metadata.Name == owner.Metadata.Name {
+							found = true
+							break
+						}
+					}
+					if !found {
+						return c.JSON(http.StatusUnauthorized, map[string]string{
+							"error": "unauthorized",
+						})
+					}
+				}
+				c.Set("owner", owner)
+			}
+
+			return next(c)
+		}
 	}
-	return echojwt.WithConfig(jwtMiddlewareConfig)
+}
+
+//func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
+//	jwtMiddlewareConfig := echojwt.Config{
+//		Skipper: skipper,
+//		BeforeFunc: func(c echo.Context) {
+//			// Merge the JWT cookies if they exist to create the token,
+//			// and then set the header Authorization with the complete token.
+//			payloadCookie, err := c.Cookie(crypto.CookieKeyJWTPayload)
+//			if errors.Is(err, http.ErrNoCookie) {
+//				logrus.Tracef("cookie %q not found", crypto.CookieKeyJWTPayload)
+//				return
+//			}
+//			signatureCookie, err := c.Cookie(crypto.CookieKeyJWTSignature)
+//			if errors.Is(err, http.ErrNoCookie) {
+//				logrus.Tracef("cookie %q not found", crypto.CookieKeyJWTSignature)
+//				return
+//			}
+//			c.Request().Header.Set("Authorization", fmt.Sprintf("Bearer %s.%s", payloadCookie.Value, signatureCookie.Value))
+//		},
+//		NewClaimsFunc: func(_ echo.Context) jwt.Claims {
+//			return &jwt.RegisteredClaims{}
+//		},
+//		SigningMethod: jwt.SigningMethodHS512.Name,
+//		SigningKey:    n.accessKey,
+//	}
+//	return echojwt.WithConfig(jwtMiddlewareConfig)
+//}
+
+func loginWithAceCookie(req *http.Request) (*AceUser, error) {
+	apiUrl, ok := os.LookupEnv("PLATFORM_APISERVER_DOMAIN")
+	if !ok {
+		apiUrl = BaseURL(req.Host, false)
+	}
+	apiUrl = strings.TrimSuffix(apiUrl, "/")
+
+	// Build request to Ace API
+	upReq, err := http.NewRequest("GET", fmt.Sprintf("%v/api/v1/user", apiUrl), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Copy cookies
+	for _, cookie := range req.Cookies() {
+		upReq.AddCookie(cookie)
+	}
+
+	// Copy headers + CSRF
+	upReq.Header = req.Header.Clone()
+	if csrf, err := req.Cookie("_csrf"); err == nil {
+		upReq.Header.Set("X-Csrf-Token", csrf.Value)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(upReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Ace API returned status %d", resp.StatusCode)
+	}
+
+	var user AceUser
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func BaseURL(host string, production bool) string {
+	baseDomain := getHost(host)
+	if production {
+		return fmt.Sprintf("https://%s", baseDomain)
+	}
+	return fmt.Sprintf("http://%v:3003", baseDomain)
+}
+
+func getHost(host string) string {
+	addr, _ := SplitHostPortDefault(host, prodDomain, "")
+	return addr.Host
 }
 
 func (n *native) GetUserProjects(ctx echo.Context, requestAction v1Role.Action, requestScope v1Role.Scope) ([]string, error) {
@@ -316,4 +493,48 @@ func (n *native) loadAllPermissions() (usersPermissions, error) {
 		}
 	}
 	return permissionBuild, nil
+}
+
+func loginWithAccessToken(ctx echo.Context, accessTokenDAO accesstoken.DAO, userDAO user.DAO) (*v1.User, error) {
+	err := ctx.Request().ParseForm()
+	if err != nil {
+		return nil, err
+	}
+	tokenSHA := ctx.Request().Form.Get("token")
+	if len(tokenSHA) == 0 {
+		tokenSHA = ctx.Request().Form.Get("access_token")
+	}
+	if len(tokenSHA) == 0 {
+		// Well, check with header again.
+		auHead := ctx.Request().Header.Get("Authorization")
+		if len(auHead) > 0 {
+			auths := strings.Fields(auHead)
+			if len(auths) == 2 && (auths[0] == "token" || strings.ToLower(auths[0]) == "bearer") {
+				tokenSHA = auths[1]
+			}
+		}
+	}
+
+	if len(tokenSHA) > 0 {
+		if strings.Contains(tokenSHA, ".") {
+			return nil, apiInterface.UnauthorizedError
+		}
+
+		t, err := accessTokenDAO.Get(tokenSHA)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("loginWithAccessToken: %+v\n", t)
+
+		user, err := userDAO.GetByID(t.UID)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("user: %+v\n", user)
+
+		return user, nil
+	}
+	return nil, apiInterface.UnauthorizedError
 }

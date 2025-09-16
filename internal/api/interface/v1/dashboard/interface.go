@@ -31,6 +31,17 @@ type Query struct {
 	// The value can come from the path of the URL or from the query parameter
 	Project      string `param:"project" query:"project"`
 	MetadataOnly bool   `query:"metadata_only"`
+	Folder       string `param:"folder" query:"folder"`
+
+	UserID    int64 `param:"user" query:"user"`
+	FolderID  int64 `param:"folderID" query:"folderID"`
+	ProjectID int64 `param:"projectID" query:"projectID"`
+
+	WithFolderName string `query:"with_folder_name"`
+}
+
+func (q *Query) SetFolderID(folderID int64) {
+	q.FolderID = folderID
 }
 
 func (q *Query) GetMetadataOnlyQueryParam() bool {
@@ -38,11 +49,19 @@ func (q *Query) GetMetadataOnlyQueryParam() bool {
 }
 
 func (q *Query) IsRawQueryAllowed() bool {
-	return true
+	return false
 }
 
 func (q *Query) IsRawMetadataQueryAllowed() bool {
-	return true
+	return false
+}
+
+func (q *Query) SetUserID(userID int64) {
+	q.UserID = userID
+}
+
+func (q *Query) SetProjectID(projectID int64) {
+	q.ProjectID = projectID
 }
 
 func (q *Query) GetProjectQueryParam() string {
@@ -56,9 +75,9 @@ func (q *Query) SetProjectQueryParam(project string) {
 type DAO interface {
 	Create(entity *v1.Dashboard) error
 	Update(entity *v1.Dashboard) error
-	Delete(project string, name string) error
+	Delete(projectID, folderID int64, name string) error
 	DeleteAll(project string) error
-	Get(project string, name string) (*v1.Dashboard, error)
+	Get(projectID, folderID int64, name string) (*v1.Dashboard, error)
 	List(q *Query) ([]*v1.Dashboard, error)
 	RawList(q *Query) ([]json.RawMessage, error)
 	MetadataList(q *Query) ([]api.Entity, error)

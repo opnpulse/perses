@@ -19,6 +19,7 @@ import (
 	"github.com/perses/perses/internal/api/authorization/k8s"
 	"github.com/perses/perses/internal/api/authorization/native"
 	"github.com/perses/perses/internal/api/crypto"
+	"github.com/perses/perses/internal/api/interface/v1/accesstoken"
 	"github.com/perses/perses/internal/api/interface/v1/globalrole"
 	"github.com/perses/perses/internal/api/interface/v1/globalrolebinding"
 	"github.com/perses/perses/internal/api/interface/v1/role"
@@ -83,7 +84,7 @@ type Authorization interface {
 	RefreshPermissions() error
 }
 
-func New(userDAO user.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
+func New(userDAO user.DAO, accessTokenDAO accesstoken.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
 	globalRoleDAO globalrole.DAO, globalRoleBindingDAO globalrolebinding.DAO, conf config.Config) (Authorization, error) {
 	// If the higher level auth enabled is false then ignore all authorization configuration
 	if !conf.Security.EnableAuth {
@@ -95,6 +96,6 @@ func New(userDAO user.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
 	}
 
 	// If no providers are explicitly set but auth is enabled, then use the perses native authz
-	return native.New(userDAO, roleDAO, roleBindingDAO, globalRoleDAO, globalRoleBindingDAO, conf)
+	return native.New(userDAO, accessTokenDAO, roleDAO, roleBindingDAO, globalRoleDAO, globalRoleBindingDAO, conf)
 
 }

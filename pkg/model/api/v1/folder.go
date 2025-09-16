@@ -85,8 +85,26 @@ type Folder struct {
 	Spec     FolderSpec      `json:"spec" yaml:"spec"`
 }
 
+func (f *Folder) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (f *Folder) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (f *Folder) GetMetadata() modelAPI.Metadata {
 	return &f.Metadata
+}
+
+func (f *Folder) SetUserID(id int64) {
+	f.Metadata.UserID = id
+}
+
+func (f *Folder) SetProjectID(id int64) {
+	f.Metadata.ProjectID = id
 }
 
 func (f *Folder) GetKind() string {
@@ -127,6 +145,12 @@ func (f *Folder) validate() error {
 	if f.Kind != KindFolder {
 		return fmt.Errorf("invalid kind: %q for a Folder type", f.Kind)
 	}
+
+	// we should not validate the spec here because it can be empty. user can create a folder without any dashboard.
+	//if len(f.Spec) == 0 {
+	//	return fmt.Errorf("spec cannot be empty")
+	//}
+
 	// Verify there is only one reference to a dashboard.
 	// We have to limit it because otherwise in the UI we won't be able to determinate from which folder the dashboard is coming from.
 	// You will likely have this link https://perses-dev/project/<your_project>/folders/<folder_name>/<dashboard_name>.

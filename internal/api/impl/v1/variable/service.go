@@ -99,10 +99,14 @@ func (s *service) update(entity *v1.Variable, parameters apiInterface.Parameters
 }
 
 func (s *service) Delete(_ echo.Context, parameters apiInterface.Parameters) error {
-	return s.dao.Delete(parameters.Project, parameters.Name)
+	return s.dao.Delete(parameters.ProjectID, parameters.Name)
 }
 
 func (s *service) Get(parameters apiInterface.Parameters) (*v1.Variable, error) {
+	return s.dao.Get(parameters.Project, parameters.Name)
+}
+
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Variable, error) {
 	return s.dao.Get(parameters.Project, parameters.Name)
 }
 

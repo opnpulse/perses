@@ -116,6 +116,10 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.Role, error) {
 	return s.dao.Get(parameters.Project, parameters.Name)
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Role, error) {
+	return s.dao.Get(parameters.Project, parameters.Name)
+}
+
 func (s *service) List(q *role.Query) ([]*v1.Role, error) {
 	return s.dao.List(q)
 }

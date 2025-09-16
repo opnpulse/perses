@@ -60,6 +60,8 @@ func (f *File) Verify() error {
 }
 
 type SQL struct {
+	Driver string `json:"driver,omitempty" yaml:"driver,omitempty"` // "mysql" or "postgres"
+
 	// TLS configuration
 	TLSConfig *secret.PublicTLSConfig `json:"tls_config,omitempty" yaml:"tls_config,omitempty"`
 	// Username

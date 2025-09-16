@@ -21,8 +21,25 @@ type PartialEntity struct {
 	Spec     struct{} `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (p *PartialEntity) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PartialEntity) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *PartialEntity) GetMetadata() modelAPI.Metadata {
 	return &p.Metadata
+}
+
+func (p *PartialEntity) SetUserID(id int64) {
+	p.Metadata.UserID = id
+}
+
+func (p *PartialEntity) SetProjectID(id int64) {
 }
 
 func (p *PartialEntity) GetKind() string {
@@ -37,6 +54,26 @@ type PartialProjectEntity struct {
 	Kind     Kind            `json:"kind" yaml:"kind"`
 	Metadata ProjectMetadata `json:"metadata" yaml:"metadata"`
 	Spec     struct{}        `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func (p *PartialProjectEntity) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PartialProjectEntity) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PartialProjectEntity) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PartialProjectEntity) SetUserID(id int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (p *PartialProjectEntity) GetMetadata() modelAPI.Metadata {

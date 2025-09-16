@@ -39,6 +39,7 @@ const (
 	KindSecret             Kind = "Secret"
 	KindUser               Kind = "User"
 	KindVariable           Kind = "Variable"
+	KindAccessToken        Kind = "AccessToken"
 )
 
 var PluralKindMap = map[Kind]string{

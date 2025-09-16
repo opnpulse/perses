@@ -110,6 +110,10 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.GlobalDatasource,
 	return s.dao.Get(parameters.Name)
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.GlobalDatasource, error) {
+	return s.dao.Get(parameters.Name)
+}
+
 func (s *service) List(q *globaldatasource.Query) ([]*v1.GlobalDatasource, error) {
 	dtsList, err := s.dao.List(q)
 	if err != nil {

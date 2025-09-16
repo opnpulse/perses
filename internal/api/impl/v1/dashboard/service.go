@@ -102,7 +102,7 @@ func (s *service) update(entity *v1.Dashboard, parameters apiInterface.Parameter
 	}
 
 	// find the previous version of the dashboard
-	oldEntity, err := s.dao.Get(parameters.Project, parameters.Name)
+	oldEntity, err := s.dao.Get(parameters.ProjectID, parameters.FolderID, parameters.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +115,15 @@ func (s *service) update(entity *v1.Dashboard, parameters apiInterface.Parameter
 }
 
 func (s *service) Delete(_ echo.Context, parameters apiInterface.Parameters) error {
-	return s.dao.Delete(parameters.Project, parameters.Name)
+	return s.dao.Delete(parameters.ProjectID, parameters.FolderID, parameters.Name)
 }
 
 func (s *service) Get(parameters apiInterface.Parameters) (*v1.Dashboard, error) {
-	return s.dao.Get(parameters.Project, parameters.Name)
+	return s.dao.Get(parameters.ProjectID, parameters.FolderID, parameters.Name)
+}
+
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Dashboard, error) {
+	return s.dao.Get(parameters.ProjectID, parameters.FolderID, parameters.Name)
 }
 
 func (s *service) List(q *dashboard.Query) ([]*v1.Dashboard, error) {
@@ -139,17 +143,17 @@ func (s *service) RawMetadataList(q *dashboard.Query) ([]json.RawMessage, error)
 }
 
 func (s *service) Validate(entity *v1.Dashboard) error {
-	projectVars, projectVarsErr := s.collectProjectVariables(entity.Metadata.Project)
+	projectVars, projectVarsErr := s.collectProjectVariables(entity.Metadata.GetProjectID(), entity.Metadata.GetUserID())
 	if projectVarsErr != nil {
 		return apiInterface.HandleError(projectVarsErr)
 	}
 
-	globalVars, globalVarsErr := s.collectGlobalVariables()
-	if globalVarsErr != nil {
-		return apiInterface.HandleError(globalVarsErr)
-	}
+	//globalVars, globalVarsErr := s.collectGlobalVariables()
+	//if globalVarsErr != nil {
+	//	return apiInterface.HandleError(globalVarsErr)
+	//}
 
-	if err := validate.DashboardSpecWithVars(entity.Spec, s.sch, projectVars, globalVars); err != nil {
+	if err := validate.DashboardSpecWithVars(entity.Spec, s.sch, projectVars, nil); err != nil {
 		return apiInterface.HandleBadRequestError(err.Error())
 	}
 	if err := validate.DashboardWithCustomRules(entity, s.customRules); err != nil {
@@ -168,11 +172,11 @@ func (s *service) Validate(entity *v1.Dashboard) error {
 	return nil
 }
 
-func (s *service) collectProjectVariables(project string) ([]*v1.Variable, error) {
-	if len(project) == 0 {
+func (s *service) collectProjectVariables(projectId, userId int64) ([]*v1.Variable, error) {
+	if projectId == 0 || userId == 0 {
 		return nil, nil
 	}
-	return s.projectVarDAO.List(&variable.Query{Project: project})
+	return s.projectVarDAO.List(&variable.Query{ProjectID: projectId, UserID: userId})
 }
 
 func (s *service) collectGlobalVariables() ([]*v1.GlobalVariable, error) {

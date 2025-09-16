@@ -80,8 +80,27 @@ type GlobalSecret struct {
 	Spec     SecretSpec `json:"spec" yaml:"spec"`
 }
 
+func (g *GlobalSecret) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GlobalSecret) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GlobalSecret) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (g *GlobalSecret) GetMetadata() modelAPI.Metadata {
 	return &g.Metadata
+}
+
+func (g *GlobalSecret) SetUserID(id int64) {
+	g.Metadata.UserID = id
 }
 
 func (g *GlobalSecret) GetKind() string {
@@ -96,6 +115,24 @@ type Secret struct {
 	Kind     Kind            `json:"kind" yaml:"kind"`
 	Metadata ProjectMetadata `json:"metadata" yaml:"metadata"`
 	Spec     SecretSpec      `json:"spec" yaml:"spec"`
+}
+
+func (s *Secret) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Secret) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Secret) SetUserID(id int64) {
+	s.Metadata.UserID = id
+}
+
+func (s *Secret) SetProjectID(id int64) {
+	s.Metadata.ProjectID = id
 }
 
 func (s *Secret) GetMetadata() modelAPI.Metadata {

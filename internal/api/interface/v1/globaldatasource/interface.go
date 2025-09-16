@@ -30,6 +30,11 @@ type Query struct {
 	Default *bool `query:"default"`
 }
 
+func (q *Query) SetFolderID(folderID int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (q *Query) GetMetadataOnlyQueryParam() bool {
 	return false
 }
@@ -47,6 +52,12 @@ func (q *Query) GetProjectQueryParam() string {
 }
 
 func (q *Query) SetProjectQueryParam(_ string) {
+}
+
+func (q *Query) SetUserID(userID int64) {
+}
+
+func (q *Query) SetProjectID(projectID int64) {
 }
 
 type DAO interface {

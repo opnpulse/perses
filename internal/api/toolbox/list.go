@@ -60,10 +60,35 @@ func (t *toolbox[T, K, V]) list(ctx echo.Context, parameters apiInterface.Parame
 		// We set it in the parameter as it is used for check permission and to get the list of the resource the user has access to.
 		parameters.Project = projectQueryParameter
 	}
-	if t.authz.IsEnabled() {
-		// When permission is activated, the list is filtered based on what the user has access to.
-		// It considered multiple different cases, so that's why it's treated in a separated function.
-		return t.listWhenPermissionIsActivated(ctx, parameters, query)
+	//if t.authz.IsEnabled() {
+	//	// When permission is activated, the list is filtered based on what the user has access to.
+	//	// It considered multiple different cases, so that's why it's treated in a separated function.
+	//	return t.listWhenPermissionIsActivated(ctx, parameters, query)
+	//}
+	userID, _, err := t.getUserIDAndType(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query.SetUserID(userID)
+
+	if parameters.Project != "" {
+		projectMetadata := modelV1.NewMetadata(parameters.Project)
+		projectMetadata.UserID = userID
+		projectID, err := t.dao.GetProjectID(projectMetadata)
+		if err != nil {
+			return nil, err
+		}
+		query.SetProjectID(projectID)
+
+		if parameters.Folder != "" {
+			folderMetadata := modelV1.NewMetadata(parameters.Folder)
+			folderMetadata.ProjectID = projectID
+			folderID, err := t.dao.GetFolderID(folderMetadata)
+			if err != nil {
+				return nil, err
+			}
+			query.SetFolderID(folderID)
+		}
 	}
 	return t.metadataOrFullList(query)
 }

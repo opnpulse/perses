@@ -48,6 +48,10 @@ func (s *service) Create(_ echo.Context, entity *v1.Folder) (*v1.Folder, error) 
 func (s *service) create(entity *v1.Folder) (*v1.Folder, error) {
 	// Update the time contains in the entity
 	entity.Metadata.CreateNow()
+	if entity.Spec == nil {
+		spec := make([]v1.FolderSpec, 0)
+		entity.Spec = spec
+	}
 	if err := s.dao.Create(entity); err != nil {
 		return nil, err
 	}
@@ -87,10 +91,14 @@ func (s *service) update(entity *v1.Folder, parameters apiInterface.Parameters) 
 }
 
 func (s *service) Delete(_ echo.Context, parameters apiInterface.Parameters) error {
-	return s.dao.Delete(parameters.Project, parameters.Name)
+	return s.dao.Delete(parameters.UserID, parameters.Project, parameters.Name)
 }
 
 func (s *service) Get(parameters apiInterface.Parameters) (*v1.Folder, error) {
+	return s.dao.Get(parameters.Project, parameters.Name)
+}
+
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Folder, error) {
 	return s.dao.Get(parameters.Project, parameters.Name)
 }
 

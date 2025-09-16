@@ -26,8 +26,15 @@ type Query struct {
 	databaseModel.Query
 	// NamePrefix is a prefix of the User.metadata.name that is used to filter the list of the User.
 	// NamePrefix can be empty in case you want to return the full list of User available.
-	NamePrefix   string `query:"name"`
+	NamePrefix   string `param:"name" query:"name"`
 	MetadataOnly bool   `query:"metadata_only"`
+
+	AllOrgs bool `query:"all_orgs"`
+}
+
+func (q *Query) SetFolderID(folderID int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (q *Query) GetMetadataOnlyQueryParam() bool {
@@ -49,11 +56,19 @@ func (q *Query) GetProjectQueryParam() string {
 func (q *Query) SetProjectQueryParam(_ string) {
 }
 
+func (q *Query) SetUserID(userID int64) {
+}
+
+func (q *Query) SetProjectID(projectID int64) {
+}
+
 type DAO interface {
 	Create(entity *v1.User) error
 	Update(entity *v1.User) error
 	Delete(name string) error
 	Get(name string) (*v1.User, error)
+	GetByID(id int64) (*v1.User, error)
+	GetAllOrganizationsOfAnUser(userName string) ([]*v1.User, error)
 	List(q *Query) ([]*v1.User, error)
 	MetadataList(q *Query) ([]api.Entity, error)
 	RawMetadataList(q *Query) ([]json.RawMessage, error)

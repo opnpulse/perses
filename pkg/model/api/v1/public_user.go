@@ -46,8 +46,27 @@ type PublicUser struct {
 	Spec     PublicUserSpec `json:"spec"`
 }
 
+func (u *PublicUser) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *PublicUser) SetUserType(userType string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *PublicUser) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (u *PublicUser) GetMetadata() modelAPI.Metadata {
 	return &u.Metadata
+}
+
+func (u *PublicUser) SetUserID(id int64) {
+	u.Metadata.UserID = id
 }
 
 func (u *PublicUser) GetKind() string {

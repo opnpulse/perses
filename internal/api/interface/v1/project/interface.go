@@ -28,6 +28,13 @@ type Query struct {
 	// NamePrefix can be empty in case you want to return the full list of project available.
 	NamePrefix   string `query:"name"`
 	MetadataOnly bool   `query:"metadata_only"`
+
+	UserID int64 `param:"user" query:"user"`
+}
+
+func (q *Query) SetFolderID(folderID int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (q *Query) GetMetadataOnlyQueryParam() bool {
@@ -49,11 +56,19 @@ func (q *Query) GetProjectQueryParam() string {
 func (q *Query) SetProjectQueryParam(_ string) {
 }
 
+func (q *Query) SetUserID(userID int64) {
+	q.UserID = userID
+}
+
+func (q *Query) SetProjectID(projectID int64) {
+}
+
 type DAO interface {
 	Create(entity *v1.Project) error
 	Update(entity *v1.Project) error
-	Delete(name string) error
+	Delete(name string, userId int64) error
 	Get(name string) (*v1.Project, error)
+	GetByNameAndUser(name string, userName string) (*v1.Project, error)
 	List(q *Query) ([]*v1.Project, error)
 	RawList(q *Query) ([]json.RawMessage, error)
 	MetadataList(q *Query) ([]api.Entity, error)

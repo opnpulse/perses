@@ -110,6 +110,10 @@ func (s *service) Get(parameters apiInterface.Parameters) (*v1.GlobalRole, error
 	return s.dao.Get(parameters.Name)
 }
 
+func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.GlobalRole, error) {
+	return s.dao.Get(parameters.Name)
+}
+
 func (s *service) List(q *globalrole.Query) ([]*v1.GlobalRole, error) {
 	return s.dao.List(q)
 }

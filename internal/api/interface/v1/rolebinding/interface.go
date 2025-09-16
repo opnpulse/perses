@@ -33,6 +33,11 @@ type Query struct {
 	MetadataOnly bool   `query:"metadata_only"`
 }
 
+func (q *Query) SetFolderID(folderID int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (q *Query) GetMetadataOnlyQueryParam() bool {
 	return q.MetadataOnly
 }
@@ -51,6 +56,12 @@ func (q *Query) GetProjectQueryParam() string {
 
 func (q *Query) SetProjectQueryParam(project string) {
 	q.Project = project
+}
+
+func (q *Query) SetUserID(userID int64) {
+}
+
+func (q *Query) SetProjectID(projectID int64) {
 }
 
 type DAO interface {

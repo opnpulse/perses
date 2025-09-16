@@ -16,6 +16,7 @@ package dependency
 import (
 	"github.com/perses/perses/internal/api/database"
 	databaseModel "github.com/perses/perses/internal/api/database/model"
+	accessTokenImpl "github.com/perses/perses/internal/api/impl/v1/accesstoken"
 	dashboardImpl "github.com/perses/perses/internal/api/impl/v1/dashboard"
 	datasourceImpl "github.com/perses/perses/internal/api/impl/v1/datasource"
 	ephemeralDashboardImpl "github.com/perses/perses/internal/api/impl/v1/ephemeraldashboard"
@@ -32,6 +33,7 @@ import (
 	secretImpl "github.com/perses/perses/internal/api/impl/v1/secret"
 	userImpl "github.com/perses/perses/internal/api/impl/v1/user"
 	variableImpl "github.com/perses/perses/internal/api/impl/v1/variable"
+	"github.com/perses/perses/internal/api/interface/v1/accesstoken"
 	"github.com/perses/perses/internal/api/interface/v1/dashboard"
 	"github.com/perses/perses/internal/api/interface/v1/datasource"
 	"github.com/perses/perses/internal/api/interface/v1/ephemeraldashboard"
@@ -69,6 +71,7 @@ type PersistenceManager interface {
 	GetSecret() secret.DAO
 	GetUser() user.DAO
 	GetVariable() variable.DAO
+	GetAccessToken() accesstoken.DAO
 }
 
 type persistence struct {
@@ -90,6 +93,7 @@ type persistence struct {
 	secret             secret.DAO
 	user               user.DAO
 	variable           variable.DAO
+	accessToken        accesstoken.DAO
 }
 
 func newPersistenceManager(conf config.Database) (PersistenceManager, error) {
@@ -113,6 +117,7 @@ func newPersistenceManager(conf config.Database) (PersistenceManager, error) {
 	secretDAO := secretImpl.NewDAO(persesDAO)
 	userDAO := userImpl.NewDAO(persesDAO)
 	variableDAO := variableImpl.NewDAO(persesDAO)
+	accessTokenDAO := accessTokenImpl.NewDAO(persesDAO)
 	return &persistence{
 		dashboard:          dashboardDAO,
 		datasource:         datasourceDAO,
@@ -131,6 +136,7 @@ func newPersistenceManager(conf config.Database) (PersistenceManager, error) {
 		secret:             secretDAO,
 		user:               userDAO,
 		variable:           variableDAO,
+		accessToken:        accessTokenDAO,
 	}, nil
 }
 
@@ -200,4 +206,8 @@ func (p *persistence) GetUser() user.DAO {
 
 func (p *persistence) GetVariable() variable.DAO {
 	return p.variable
+}
+
+func (p *persistence) GetAccessToken() accesstoken.DAO {
+	return p.accessToken
 }

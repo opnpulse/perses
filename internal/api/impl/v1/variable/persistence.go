@@ -43,8 +43,10 @@ func (d *dao) Update(entity *v1.Variable) error {
 	return d.client.Upsert(entity)
 }
 
-func (d *dao) Delete(project string, name string) error {
-	return d.client.Delete(d.kind, v1.NewProjectMetadata(project, name))
+func (d *dao) Delete(projectId int64, name string) error {
+	metadata := v1.NewMetadata(name)
+	metadata.ProjectID = projectId
+	return d.client.Delete(d.kind, metadata)
 }
 
 func (d *dao) DeleteAll(project string) error {

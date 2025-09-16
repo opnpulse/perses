@@ -43,8 +43,20 @@ func (d *dao) Update(entity *v1.Folder) error {
 	return d.client.Upsert(entity)
 }
 
-func (d *dao) Delete(project string, name string) error {
-	return d.client.Delete(d.kind, v1.NewProjectMetadata(project, name))
+func (d *dao) Delete(userId int64, project string, name string) error {
+	projectMetadata := v1.NewMetadata(project)
+	projectMetadata.UserID = userId
+
+	projectId, err := d.client.GetProjectID(projectMetadata)
+	if err != nil {
+		return err
+	}
+
+	folderMetadata := v1.NewMetadata(name)
+	folderMetadata.ProjectID = projectId
+	folderMetadata.UserID = userId
+
+	return d.client.Delete(d.kind, folderMetadata)
 }
 
 func (d *dao) DeleteAll(project string) error {

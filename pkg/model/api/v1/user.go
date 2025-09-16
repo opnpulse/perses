@@ -24,6 +24,8 @@ import (
 // It is used in the context of user permissions to indicate that the permission applies to all projects.
 const WildcardProject = "*"
 
+const OrgSystemUserPrefix = "_system_admin_"
+
 type NativeProvider struct {
 	Password string `json:"password,omitempty" yaml:"password,omitempty"`
 }
@@ -45,6 +47,25 @@ type User struct {
 	Kind     Kind     `json:"kind"`
 	Metadata Metadata `json:"metadata"`
 	Spec     UserSpec `json:"spec"`
+}
+
+func (u *User) SetFolderID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *User) SetUserType(userType string) {
+	u.Metadata.UserType = userType
+}
+
+func (u *User) SetProjectID(id int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *User) SetUserID(id int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (u *User) GetMetadata() modelAPI.Metadata {

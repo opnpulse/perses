@@ -43,22 +43,35 @@ func (d *dao) Update(entity *v1.Dashboard) error {
 	return d.client.Upsert(entity)
 }
 
-func (d *dao) Delete(project string, name string) error {
-	return d.client.Delete(d.kind, v1.NewProjectMetadata(project, name))
+func (d *dao) Delete(projectId int64, folderId int64, name string) error {
+	metadata := v1.NewMetadata(name)
+	metadata.ProjectID = projectId
+	metadata.FolderID = folderId
+	return d.client.Delete(d.kind, metadata)
 }
 
 func (d *dao) DeleteAll(project string) error {
 	return d.client.DeleteByQuery(&dashboard.Query{Project: project})
 }
 
-func (d *dao) Get(project string, name string) (*v1.Dashboard, error) {
+func (d *dao) Get(projectID int64, folderId int64, name string) (*v1.Dashboard, error) {
 	entity := &v1.Dashboard{}
-	return entity, d.client.Get(d.kind, v1.NewProjectMetadata(project, name), entity)
+	metadata := v1.NewMetadata(name)
+	metadata.ProjectID = projectID
+	metadata.FolderID = folderId
+	return entity, d.client.Get(d.kind, metadata, entity)
 }
 
 func (d *dao) List(q *dashboard.Query) ([]*v1.Dashboard, error) {
 	var result []*v1.Dashboard
 	err := d.client.Query(q, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	if q.WithFolderName == "true" {
+		return setFolderName(d.client, result)
+	}
 	return result, err
 }
 
@@ -78,4 +91,17 @@ func (d *dao) MetadataList(q *dashboard.Query) ([]api.Entity, error) {
 
 func (d *dao) RawMetadataList(q *dashboard.Query) ([]json.RawMessage, error) {
 	return d.client.RawMetadataQuery(q, d.kind)
+}
+
+func setFolderName(client databaseModel.DAO, dashboards []*v1.Dashboard) ([]*v1.Dashboard, error) {
+	for _, d := range dashboards {
+		if d.Metadata.FolderID != 0 {
+			entity := &v1.Folder{}
+			if err := client.GetById(v1.KindFolder, d.Metadata.FolderID, entity); err != nil {
+				return nil, err
+			}
+			d.Metadata.FolderName = entity.GetMetadata().GetName()
+		}
+	}
+	return dashboards, nil
 }

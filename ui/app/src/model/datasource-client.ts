@@ -23,6 +23,7 @@ import { DatasourceResource, fetchJson, StatusError } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import { buildQueryKey } from './querykey-builder';
+import { useAuthToken } from './auth-client';
 
 export const resource = 'datasources';
 
@@ -30,9 +31,9 @@ type DatasourceListOptions = Omit<UseQueryOptions<DatasourceResource[], StatusEr
   project?: string;
 };
 
-export function createDatasource(entity: DatasourceResource): Promise<DatasourceResource> {
+export function createDatasource(owner: string | undefined, entity: DatasourceResource): Promise<DatasourceResource> {
   const project = entity.metadata.project;
-  const url = buildURL({ resource, project });
+  const url = buildURL({ resource, project, owner });
   return fetchJson<DatasourceResource>(url, {
     method: HTTPMethodPOST,
     headers: HTTPHeader,
@@ -40,26 +41,26 @@ export function createDatasource(entity: DatasourceResource): Promise<Datasource
   });
 }
 
-function getDatasource(name: string, project: string): Promise<DatasourceResource> {
-  const url = buildURL({ resource, project, name });
+function getDatasource(owner: string | undefined, name: string, project: string): Promise<DatasourceResource> {
+  const url = buildURL({ resource, project, name, owner });
   return fetchJson<DatasourceResource>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
 
-function getDatasources(project?: string): Promise<DatasourceResource[]> {
-  const url = buildURL({ resource, project });
+function getDatasources(owner: string | undefined, project?: string): Promise<DatasourceResource[]> {
+  const url = buildURL({ resource, project, owner });
   return fetchJson<DatasourceResource[]>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
 
-export function updateDatasource(entity: DatasourceResource): Promise<DatasourceResource> {
+export function updateDatasource(owner: string | undefined, entity: DatasourceResource): Promise<DatasourceResource> {
   const name = entity.metadata.name;
   const project = entity.metadata.project;
-  const url = buildURL({ resource, project, name });
+  const url = buildURL({ resource, project, name, owner });
   return fetchJson<DatasourceResource>(url, {
     method: HTTPMethodPUT,
     headers: HTTPHeader,
@@ -67,10 +68,10 @@ export function updateDatasource(entity: DatasourceResource): Promise<Datasource
   });
 }
 
-export function deleteDatasource(entity: DatasourceResource): Promise<Response> {
+export function deleteDatasource(owner: string | undefined, entity: DatasourceResource): Promise<Response> {
   const name = entity.metadata.name;
   const project = entity.metadata.project;
-  const url = buildURL({ resource, project, name });
+  const url = buildURL({ resource, project, name, owner });
   return fetch(url, {
     method: HTTPMethodDELETE,
     headers: HTTPHeader,
@@ -82,10 +83,13 @@ export function deleteDatasource(entity: DatasourceResource): Promise<Response> 
  * Will automatically be refreshed when cache is invalidated
  */
 export function useDatasource(name: string, project: string): UseQueryResult<DatasourceResource, StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+  
   return useQuery<DatasourceResource, StatusError>({
     queryKey: buildQueryKey({ resource, name, parent: project }),
     queryFn: () => {
-      return getDatasource(name, project);
+      return getDatasource(owner, name, project);
     },
   });
 }
@@ -95,11 +99,15 @@ export function useDatasource(name: string, project: string): UseQueryResult<Dat
  * Will automatically be refreshed when cache is invalidated
  */
 export function useDatasourceList(options: DatasourceListOptions): UseQueryResult<DatasourceResource[], StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useQuery<DatasourceResource[], StatusError>({
     queryKey: buildQueryKey({ resource, parent: options.project }),
     queryFn: () => {
-      return getDatasources(options.project);
+      return getDatasources(owner, options.project);
     },
+    enabled: !!owner,
     ...options,
   });
 }
@@ -116,11 +124,13 @@ export function useCreateDatasourceMutation(
 ): UseMutationResult<DatasourceResource, StatusError, DatasourceResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<DatasourceResource, StatusError, DatasourceResource>({
     mutationKey: queryKey,
     mutationFn: (datasource: DatasourceResource) => {
-      return createDatasource(datasource);
+      return createDatasource(owner, datasource);
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: [...queryKey] });
@@ -140,10 +150,13 @@ export function useUpdateDatasourceMutation(
 ): UseMutationResult<DatasourceResource, StatusError, DatasourceResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useMutation<DatasourceResource, StatusError, DatasourceResource>({
     mutationKey: queryKey,
     mutationFn: (datasource: DatasourceResource) => {
-      return updateDatasource(datasource);
+      return updateDatasource(owner, datasource);
     },
     onSuccess: (entity: DatasourceResource) => {
       return Promise.all([
@@ -166,11 +179,13 @@ export function useDeleteDatasourceMutation(
 ): UseMutationResult<DatasourceResource, StatusError, DatasourceResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<DatasourceResource, StatusError, DatasourceResource>({
     mutationKey: queryKey,
     mutationFn: async (entity: DatasourceResource) => {
-      await deleteDatasource(entity);
+      await deleteDatasource(owner, entity);
       return entity;
     },
     onSuccess: (entity: DatasourceResource) => {

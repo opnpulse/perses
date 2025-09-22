@@ -193,31 +193,39 @@ function TabButton({ index, projectName, ...props }: TabButtonProps): ReactEleme
   );
 
   switch (index) {
+    case foldersTabIndex:
+      return (
+        <>
+          <CRUDButton
+            action="create"
+            scope="Folder"
+            project={projectName}
+            variant="contained"
+            onClick={() => setCreateFolderDialogOpen(true)}
+            {...props}
+          >
+            Add Folder
+          </CRUDButton>
+          <CreateFolderDialog
+            projectName={projectName}
+            open={isCreateFolderDialogOpened}
+            onClose={() => setCreateFolderDialogOpen(false)}
+          />
+        </>
+      );
     case dashboardsTabIndex:
       return (
         <>
-          <Box sx={{ gap: 1, display: 'flex' }}>
-            <CRUDButton
-              action="create"
-              scope="Folder"
-              project={projectName}
-              variant="contained"
-              onClick={() => setCreateFolderDialogOpen(true)}
-              {...props}
-            >
-              Add Folder
-            </CRUDButton>
-            <CRUDButton
-              action="create"
-              scope="Dashboard"
-              project={projectName}
-              variant="contained"
-              onClick={() => setCreateDashboardDialogOpened(true)}
-              {...props}
-            >
-              Add Dashboard
-            </CRUDButton>
-          </Box>
+          <CRUDButton
+            action="create"
+            scope="Dashboard"
+            project={projectName}
+            variant="contained"
+            onClick={() => setCreateDashboardDialogOpened(true)}
+            {...props}
+          >
+            Add Dashboard
+          </CRUDButton>
           <CreateDashboardDialog
             open={isCreateDashboardDialogOpened}
             projects={[{ kind: 'Project', metadata: { name: projectName }, spec: {} }]}
@@ -225,11 +233,6 @@ function TabButton({ index, projectName, ...props }: TabButtonProps): ReactEleme
             onClose={() => setCreateDashboardDialogOpened(false)}
             onSuccess={handleDashboardCreation}
             isEphemeralDashboardEnabled={isEphemeralDashboardEnabled}
-          />
-          <CreateFolderDialog
-            projectName={projectName}
-            open={isCreateFolderDialogOpened}
-            onClose={() => setCreateFolderDialogOpen(false)}
           />
         </>
       );

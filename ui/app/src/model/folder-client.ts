@@ -11,63 +11,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  useMutation,
-  UseMutationResult,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query';
-import { fetchJson, FolderResource, StatusError } from '@perses-dev/client';
+import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
+import { fetchJson, FolderResource, DashboardResource, StatusError } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import { useAuthToken } from './auth/auth-client';
 
 export const resource: string = 'folders' as const;
 
-type FolderListOptions = Omit<UseQueryOptions<FolderResource[], StatusError>, 'queryKey' | 'queryFn'> & {
-  /**
-   * Name prefix to filter the list of folders.
-   */
-  name?: string;
-  /**
-   * Project to filter the list of folders.
-   */
+export interface FolderWithDashboards extends FolderResource {
+  dashboards: DashboardResource[];
+}
+
+export interface FolderListOptions {
   project?: string;
-  metadataOnly?: boolean;
-};
+}
 
 /**
- * Returns the list of folders, optionally filtered by project, name prefix, or metadata-only mode.
+ * Returns the list of folders (with embedded dashboards), optionally filtered by project.
  */
-export function useFolderList(options: FolderListOptions): UseQueryResult<FolderResource[], StatusError> {
-  const { project, metadataOnly, name, ...restOptions } = options;
-  return useQuery<FolderResource[], StatusError>({
-    queryKey: [resource, project, name, metadataOnly],
-    queryFn: () => {
-      return getFolders(options.project, options.metadataOnly, name);
-    },
-    ...restOptions,
+export function useFolderList(options: FolderListOptions): UseQueryResult<FolderWithDashboards[], StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
+  return useQuery<FolderWithDashboards[], StatusError>({
+    queryKey: [resource, options.project],
+    queryFn: () => getFolders(owner, options.project),
   });
 }
 
 /**
  * Returns a mutation that creates a folder and invalidates the folder list cache.
  */
-export function useCreateFolderMutation(): UseMutationResult<FolderResource, StatusError, FolderResource> {
+export function useCreateFolderMutation(
+  onSuccess?: (data: FolderResource, variables: FolderResource) => Promise<unknown> | unknown
+): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
   const { data: decodedToken } = useAuthToken();
   const owner = decodedToken?.sub;
 
   return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],
-    mutationFn: (folder) => {
-      return createFolder(owner, folder);
-    },
-    onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: [resource] });
-    },
+    mutationFn: (folder) => createFolder(owner, folder),
+    onSuccess,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: [resource] }),
   });
 }
 
@@ -116,20 +103,14 @@ function createFolder(owner: string | undefined, entity: FolderResource): Promis
   });
 }
 
-function getFolders(project?: string, metadataOnly: boolean = false, name?: string): Promise<FolderResource[]> {
-  const queryParams = new URLSearchParams();
-  if (metadataOnly) {
-    queryParams.set('metadata_only', 'true');
-  }
-  if (name) {
-    queryParams.set('name', name);
-  }
-  const url = buildURL({ resource: resource, project: project, queryParams: queryParams });
-  return fetchJson<FolderResource[]>(url, {
+function getFolders(owner: string | undefined, project?: string): Promise<FolderWithDashboards[]> {
+  const url = buildURL({ resource: resource, project, owner });
+  return fetchJson<FolderWithDashboards[]>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
+
 function updateFolder(entity: FolderResource): Promise<FolderResource> {
   const url = buildURL({ resource: resource, project: entity.metadata.project, name: entity.metadata.name });
   return fetchJson<FolderResource>(url, {

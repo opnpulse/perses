@@ -22,6 +22,7 @@ import {
 import { fetchJson, FolderResource, StatusError } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
+import { useAuthToken } from './auth/auth-client';
 
 export const resource: string = 'folders' as const;
 
@@ -56,11 +57,13 @@ export function useFolderList(options: FolderListOptions): UseQueryResult<Folder
  */
 export function useCreateFolderMutation(): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],
     mutationFn: (folder) => {
-      return createFolder(folder);
+      return createFolder(owner, folder);
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: [resource] });
@@ -104,8 +107,8 @@ export function useDeleteFolderMutation(): UseMutationResult<FolderResource, Sta
   });
 }
 
-function createFolder(entity: FolderResource): Promise<FolderResource> {
-  const url = buildURL({ resource: resource, project: entity.metadata.project });
+function createFolder(owner: string | undefined, entity: FolderResource): Promise<FolderResource> {
+  const url = buildURL({ resource: resource, project: entity.metadata.project, owner });
   return fetchJson<FolderResource>(url, {
     method: HTTPMethodPOST,
     headers: HTTPHeader,

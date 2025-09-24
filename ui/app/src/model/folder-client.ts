@@ -21,6 +21,7 @@ export const resource: string = 'folders' as const;
 
 export interface FolderWithDashboards extends FolderResource {
   dashboards: DashboardResource[];
+  spec: any;
 }
 
 export interface FolderListOptions {
@@ -61,16 +62,19 @@ export function useCreateFolderMutation(
 /**
  * Returns a mutation that updates a folder and invalidates the folder list cache.
  */
-export function useUpdateFolderMutation(): UseMutationResult<FolderResource, Error, FolderResource> {
+export function useUpdateFolderMutation(): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
-  return useMutation<FolderResource, Error, FolderResource>({
+  return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],
-    mutationFn: (folder) => {
-      return updateFolder(folder);
-    },
-    onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: [resource] });
+    mutationFn: (folder: FolderResource) => updateFolder(owner, folder),
+    onSuccess: (entity: FolderResource) => {
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: [resource, entity.metadata.project] }),
+        queryClient.invalidateQueries({ queryKey: [resource] }),
+      ]);
     },
   });
 }
@@ -80,16 +84,20 @@ export function useUpdateFolderMutation(): UseMutationResult<FolderResource, Err
  */
 export function useDeleteFolderMutation(): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],
     mutationFn: async (entity: FolderResource) => {
-      await deleteFolder(entity);
+      await deleteFolder(owner, entity);
       return entity;
     },
     onSuccess: (entity: FolderResource) => {
-      queryClient.removeQueries({ queryKey: [resource, entity.metadata.project, entity.metadata.name] });
-      return queryClient.invalidateQueries({ queryKey: [resource] });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: [resource, entity.metadata.project] }),
+        queryClient.invalidateQueries({ queryKey: [resource] }),
+      ]);
     },
   });
 }
@@ -111,8 +119,8 @@ function getFolders(owner: string | undefined, project?: string): Promise<Folder
   });
 }
 
-function updateFolder(entity: FolderResource): Promise<FolderResource> {
-  const url = buildURL({ resource: resource, project: entity.metadata.project, name: entity.metadata.name });
+function updateFolder(owner: string | undefined, entity: FolderResource): Promise<FolderResource> {
+  const url = buildURL({ resource: resource, project: entity.metadata.project, name: entity.metadata.name, owner });
   return fetchJson<FolderResource>(url, {
     method: HTTPMethodPUT,
     headers: HTTPHeader,
@@ -120,8 +128,8 @@ function updateFolder(entity: FolderResource): Promise<FolderResource> {
   });
 }
 
-function deleteFolder(entity: FolderResource): Promise<Response> {
-  const url = buildURL({ resource: resource, project: entity.metadata.project, name: entity.metadata.name });
+function deleteFolder(owner: string | undefined, entity: FolderResource): Promise<Response> {
+  const url = buildURL({ resource: resource, project: entity.metadata.project, name: entity.metadata.name, owner });
   return fetch(url, {
     method: HTTPMethodDELETE,
     headers: HTTPHeader,

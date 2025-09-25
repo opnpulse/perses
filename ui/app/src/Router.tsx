@@ -142,7 +142,7 @@ function Router(): ReactElement {
                     path: `:projectName`,
                     children: [
                       { index: true, Component: ProjectView },
-                      { path: 'dashboard/new', Component: CreateDashboardView },
+                      { path: 'folders/:folderName/dashboard/new', Component: CreateDashboardView },
                       { path: 'dashboards/:dashboardName', Component: DashboardView },
                       {
                         path: 'ephemeraldashboard/new',

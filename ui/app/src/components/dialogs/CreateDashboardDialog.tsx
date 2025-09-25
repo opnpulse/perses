@@ -26,7 +26,7 @@ import {
 import { Dialog, getResourceDisplayName } from '@perses-dev/components';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EphemeralDashboardInfo, ProjectResource } from '@perses-dev/client';
+import { EphemeralDashboardInfo, FolderResource, ProjectResource } from '@perses-dev/client';
 import { DashboardSelector } from '@perses-dev/spec';
 import {
   CreateDashboardValidationType,
@@ -38,6 +38,7 @@ import {
 interface CreateDashboardProps {
   open: boolean;
   projects: ProjectResource[];
+  folders: FolderResource[];
   hideProjectSelect?: boolean;
   mode?: 'create' | 'duplicate';
   name?: string;
@@ -56,7 +57,8 @@ interface CreateDashboardProps {
  * @param props.isEphemeralDashboardEnabled Display switch button if ephemeral dashboards are enabled in copy dialog.
  */
 export const CreateDashboardDialog = (props: CreateDashboardProps): ReactElement => {
-  const { open, projects, hideProjectSelect, mode, name, onClose, onSuccess, isEphemeralDashboardEnabled } = props;
+  const { open, projects, folders, hideProjectSelect, mode, name, onClose, onSuccess, isEphemeralDashboardEnabled } =
+    props;
 
   const [isTempCopyChecked, setTempCopyChecked] = useState<boolean>(false);
   const action = mode === 'duplicate' ? 'Duplicate' : 'Create';
@@ -88,9 +90,11 @@ export const CreateDashboardDialog = (props: CreateDashboardProps): ReactElement
         </Dialog.Content>
       )}
       {isTempCopyChecked ? (
-        <EphemeralDashboardDuplicationForm {...{ projects: projects, hideProjectSelect, onClose, onSuccess }} />
+        <EphemeralDashboardDuplicationForm
+          {...{ projects: projects, folders, hideProjectSelect, onClose, onSuccess }}
+        />
       ) : (
-        <DashboardDuplicationForm {...{ projects: projects, hideProjectSelect, onClose, onSuccess }} />
+        <DashboardDuplicationForm {...{ projects: projects, folders, hideProjectSelect, onClose, onSuccess }} />
       )}
     </Dialog>
   );
@@ -98,6 +102,7 @@ export const CreateDashboardDialog = (props: CreateDashboardProps): ReactElement
 
 interface DuplicationFormProps {
   projects: ProjectResource[];
+  folders: FolderResource[];
   hideProjectSelect?: boolean;
   onClose: DispatchWithoutAction;
   onSuccess?: Dispatch<DashboardSelector | EphemeralDashboardInfo>;
@@ -105,7 +110,7 @@ interface DuplicationFormProps {
 
 /* TODO: Why does it receive an array of projects and not a single project?! */
 const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => {
-  const { projects, hideProjectSelect, onClose, onSuccess } = props;
+  const { projects, folders, hideProjectSelect, onClose, onSuccess } = props;
 
   const { schema: dashboardSchemaValidation, isSchemaLoading: isDashboardSchemaValidationLoading } =
     useDashboardValidationSchema(projects[0]?.metadata.name);
@@ -113,14 +118,21 @@ const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => 
   const dashboardForm = useForm<CreateDashboardValidationType>({
     resolver: dashboardSchemaValidation ? zodResolver(dashboardSchemaValidation) : undefined,
     mode: 'onBlur',
-    defaultValues: { dashboardName: '', projectName: projects[0]?.metadata.name ?? '', tags: [] },
+    defaultValues: { dashboardName: '', projectName: projects[0]?.metadata.name ?? '', folderName: '', tags: [] },
   });
 
   const handleProcessDashboardForm = useCallback((): SubmitHandler<CreateDashboardValidationType> => {
     return (data) => {
+      console.log({ data });
+
       onClose();
       if (onSuccess) {
-        onSuccess({ project: data.projectName, dashboard: data.dashboardName, tags: data.tags } as DashboardSelector);
+        onSuccess({
+          project: data.projectName,
+          folder: data.folderName,
+          dashboard: data.dashboardName,
+          tags: data.tags,
+        } as DashboardSelector);
       }
     };
   }, [onClose, onSuccess]);
@@ -193,6 +205,29 @@ const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => 
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                 />
+              )}
+            />
+            <Controller
+              control={dashboardForm.control}
+              name="folderName"
+              render={({ field, fieldState }) => (
+                <TextField
+                  select
+                  {...field}
+                  required
+                  id="folder"
+                  label="Folder"
+                  type="text"
+                  fullWidth
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                >
+                  {folders.map((option) => (
+                    <MenuItem key={option.metadata.name} value={option.metadata.name}>
+                      {option.metadata.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
               )}
             />
             <Controller

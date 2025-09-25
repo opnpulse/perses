@@ -25,6 +25,7 @@ import { useNavHistory } from '../context/DashboardNavHistory';
 import { useImportantDashboardSelectors } from '../context/Config';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import buildURL from './url-builder';
+import { useAuthToken } from './auth-client';
 
 export const resource = 'dashboards';
 
@@ -41,11 +42,13 @@ export function useCreateDashboardMutation(
   onSuccess?: (data: DashboardResource, variables: DashboardResource) => Promise<unknown> | unknown
 ): UseMutationResult<DashboardResource, StatusError, DashboardResource> {
   const queryClient = useQueryClient();
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<DashboardResource, StatusError, DashboardResource>({
     mutationKey: [resource],
     mutationFn: (dashboard) => {
-      return createDashboard(dashboard);
+      return createDashboard(owner, dashboard);
     },
     onSuccess: onSuccess,
     onSettled: () => {
@@ -72,11 +75,15 @@ export function useDashboard(project: string, name: string): UseQueryResult<Dash
  * Will automatically be refreshed when cache is invalidated
  */
 export function useDashboardList(options: DashboardListOptions): UseQueryResult<DashboardResource[], StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useQuery<DashboardResource[], StatusError>({
     queryKey: [resource, options.project, options.metadataOnly],
     queryFn: () => {
-      return getDashboards(options.project, options.metadataOnly);
+      return getDashboards(owner, options.project, options.metadataOnly);
     },
+    enabled: !!owner,
     ...options,
   });
 }
@@ -190,8 +197,9 @@ export function useDeleteDashboardMutation(): UseMutationResult<DashboardResourc
   });
 }
 
-export function createDashboard(entity: DashboardResource): Promise<DashboardResource> {
-  const url = buildURL({ resource: resource, project: entity.metadata.project });
+export function createDashboard(owner: string | undefined, entity: DashboardResource): Promise<DashboardResource> {
+  const url = buildURL({ owner, resource: resource, project: entity.metadata.project, folder: entity.metadata.folder });
+
   return fetchJson<DashboardResource>(url, {
     method: HTTPMethodPOST,
     headers: HTTPHeader,
@@ -207,12 +215,16 @@ export function getDashboard(project: string, name: string): Promise<DashboardRe
   });
 }
 
-export function getDashboards(project?: string, metadataOnly: boolean = false): Promise<DashboardResource[]> {
+export function getDashboards(
+  owner: string | undefined,
+  project?: string,
+  metadataOnly: boolean = false
+): Promise<DashboardResource[]> {
   const queryParams = new URLSearchParams();
   if (metadataOnly) {
-    queryParams.set('metadata_only', 'true');
+    queryParams.set('with_folder_name', 'true');
   }
-  const url = buildURL({ resource: resource, project: project, queryParams: queryParams });
+  const url = buildURL({ owner, resource: resource, project: project, queryParams: queryParams });
   return fetchJson<DashboardResource[]>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,

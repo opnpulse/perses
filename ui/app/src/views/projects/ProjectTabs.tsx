@@ -61,6 +61,7 @@ import { ProjectDatasources } from './tabs/ProjectDatasources';
 import { ProjectSecrets } from './tabs/ProjectSecrets';
 import { ProjectRoles } from './tabs/ProjectRoles';
 import { ProjectRoleBindings } from './tabs/ProjectRoleBindings';
+import { useFolderList } from '../../model/folder-client';
 import { ProjectFolders } from './tabs/ProjectFolders';
 
 const foldersTabIndex = 'folders';
@@ -97,9 +98,10 @@ function TabButton({ index, projectName, ...props }: TabButtonProps): ReactEleme
 
   const isReadonly = useIsReadonly();
   const isEphemeralDashboardEnabled = useIsEphemeralDashboardEnabled();
+  const { data: folders = [], isLoading } = useFolderList({ project: projectName });
 
   const handleDashboardCreation = (dashboardSelector: DashboardSelector): void => {
-    navigate(`/projects/${dashboardSelector.project}/dashboard/new`, {
+    navigate(`/projects/${dashboardSelector.project}/folders/${dashboardSelector.folder}/dashboard/new`, {
       state: { name: dashboardSelector.dashboard, tags: dashboardSelector.tags },
     });
   };
@@ -226,6 +228,7 @@ function TabButton({ index, projectName, ...props }: TabButtonProps): ReactEleme
           <CreateDashboardDialog
             open={isCreateDashboardDialogOpened}
             projects={[{ kind: 'Project', metadata: { name: projectName }, spec: {} }]}
+            folders={folders}
             hideProjectSelect={true}
             onClose={() => setCreateDashboardDialogOpened(false)}
             onSuccess={handleDashboardCreation}

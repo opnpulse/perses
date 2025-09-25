@@ -38,6 +38,7 @@ export const tagsValidationSchema = z
 
 export const createDashboardDialogValidationSchema = z.object({
   projectName: nameSchema,
+  folderName: nameSchema,
   dashboardName: dashboardDisplayNameValidationSchema,
   tags: tagsValidationSchema,
 });

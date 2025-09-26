@@ -16,12 +16,13 @@ import { fetchJson, StatusError, VariableResource } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import { buildQueryKey } from './querykey-builder';
+import { useAuthToken } from './auth-client';
 
 export const resource = 'variables';
 
-export function createVariable(entity: VariableResource): Promise<VariableResource> {
+export function createVariable(owner: string | undefined, entity: VariableResource): Promise<VariableResource> {
   const project = entity.metadata.project;
-  const url = buildURL({ resource, project });
+  const url = buildURL({ resource, project, owner });
   return fetchJson<VariableResource>(url, {
     method: HTTPMethodPOST,
     headers: HTTPHeader,
@@ -29,26 +30,26 @@ export function createVariable(entity: VariableResource): Promise<VariableResour
   });
 }
 
-function getVariable(name: string, project: string): Promise<VariableResource> {
-  const url = buildURL({ resource, project, name });
+function getVariable(owner: string | undefined, name: string, project: string): Promise<VariableResource> {
+  const url = buildURL({ resource, project, name, owner });
   return fetchJson<VariableResource>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
 
-function getVariables(project?: string): Promise<VariableResource[]> {
-  const url = buildURL({ resource, project });
+function getVariables(owner: string | undefined, project?: string): Promise<VariableResource[]> {
+  const url = buildURL({ resource, project, owner });
   return fetchJson<VariableResource[]>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
 
-export function updateVariable(entity: VariableResource): Promise<VariableResource> {
+export function updateVariable(owner: string | undefined, entity: VariableResource): Promise<VariableResource> {
   const name = entity.metadata.name;
   const project = entity.metadata.project;
-  const url = buildURL({ resource, project, name });
+  const url = buildURL({ resource, project, name, owner });
   return fetchJson<VariableResource>(url, {
     method: HTTPMethodPUT,
     headers: HTTPHeader,
@@ -56,10 +57,10 @@ export function updateVariable(entity: VariableResource): Promise<VariableResour
   });
 }
 
-export function deleteVariable(entity: VariableResource): Promise<Response> {
+export function deleteVariable(owner: string | undefined, entity: VariableResource): Promise<Response> {
   const name = entity.metadata.name;
   const project = entity.metadata.project;
-  const url = buildURL({ resource, project, name });
+  const url = buildURL({ resource, project, name, owner });
   return fetch(url, {
     method: HTTPMethodDELETE,
     headers: HTTPHeader,
@@ -71,10 +72,13 @@ export function deleteVariable(entity: VariableResource): Promise<Response> {
  * Will automatically be refreshed when cache is invalidated
  */
 export function useVariable(name: string, project: string): UseQueryResult<VariableResource, StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useQuery<VariableResource, StatusError>({
     queryKey: buildQueryKey({ resource, name, parent: project }),
     queryFn: () => {
-      return getVariable(name, project);
+      return getVariable(owner, name, project);
     },
   });
 }
@@ -84,10 +88,13 @@ export function useVariable(name: string, project: string): UseQueryResult<Varia
  * Will automatically be refreshed when cache is invalidated
  */
 export function useVariableList(project?: string): UseQueryResult<VariableResource[], StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useQuery<VariableResource[], StatusError>({
     queryKey: buildQueryKey({ resource, parent: project }),
     queryFn: () => {
-      return getVariables(project);
+      return getVariables(owner, project);
     },
   });
 }
@@ -104,11 +111,13 @@ export function useCreateVariableMutation(
 ): UseMutationResult<VariableResource, StatusError, VariableResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<VariableResource, StatusError, VariableResource>({
     mutationKey: queryKey,
     mutationFn: (variable: VariableResource) => {
-      return createVariable(variable);
+      return createVariable(owner, variable);
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey });
@@ -128,10 +137,13 @@ export function useUpdateVariableMutation(
 ): UseMutationResult<VariableResource, StatusError, VariableResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useMutation<VariableResource, StatusError, VariableResource>({
     mutationKey: queryKey,
     mutationFn: (variable: VariableResource) => {
-      return updateVariable(variable);
+      return updateVariable(owner, variable);
     },
     onSuccess: (entity: VariableResource) => {
       return Promise.all([
@@ -154,11 +166,13 @@ export function useDeleteVariableMutation(
 ): UseMutationResult<VariableResource, StatusError, VariableResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
 
   return useMutation<VariableResource, StatusError, VariableResource>({
     mutationKey: queryKey,
     mutationFn: async (entity: VariableResource) => {
-      await deleteVariable(entity);
+      await deleteVariable(owner, entity);
       return entity;
     },
     onSuccess: (entity: VariableResource) => {

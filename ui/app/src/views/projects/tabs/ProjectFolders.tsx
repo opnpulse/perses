@@ -17,17 +17,20 @@ import { useHasPermission } from '../../../context/Authorization';
 import { DeleteResourceDialog } from '../../../components/dialogs';
 import { useSnackbar } from '@perses-dev/components';
 import { UpdateFolderDialog } from '../../../components/dialogs/UpdateFolderDialog';
+import { useFolderBasedDashboardList } from '../../../model/dashboard-client';
 
 interface FolderAccordionProps {
   folder: FolderWithDashboards;
+  project?: string;
 }
 
-export function FolderAccordion({ folder }: FolderAccordionProps): ReactElement {
+export function FolderAccordion({ folder, project }: FolderAccordionProps): ReactElement {
   const isEphemeralDashboardEnabled = useIsEphemeralDashboardEnabled();
   //const hasPermission = useHasPermission('delete', folder.metadata.name, 'Project');
   const hasPermission = true;
   const deleteFolderMutation = useDeleteFolderMutation();
   const updateFolderMutation = useUpdateFolderMutation();
+  const { data: dashboards, isLoading } = useFolderBasedDashboardList(project, folder.metadata.name);
   const isReadonly = useIsReadonly();
   const { successSnackbar, exceptionSnackbar } = useSnackbar();
   const [isDeleteFolderDialogOpen, setIsDeleteFolderDialogOpen] = useState<boolean>(false);
@@ -86,13 +89,6 @@ export function FolderAccordion({ folder }: FolderAccordionProps): ReactElement 
               <Stack direction="row" gap={1}>
                 <IconButton
                   component="div"
-                  onClick={(event: MouseEvent) => openEditDialog(event)}
-                  disabled={isReadonly}
-                >
-                  <Pencil />
-                </IconButton>
-                <IconButton
-                  component="div"
                   onClick={(event: MouseEvent) => openDeleteProjectConfirmDialog(event)}
                   disabled={isReadonly}
                 >
@@ -104,7 +100,7 @@ export function FolderAccordion({ folder }: FolderAccordionProps): ReactElement 
         </AccordionSummary>
         <AccordionDetails sx={{ padding: 0 }}>
           <DashboardList
-            dashboardList={folder.dashboards || []}
+            dashboardList={dashboards || []}
             hideToolbar={true}
             initialState={{
               pagination: { paginationModel: { pageSize: 25, page: 0 } },
@@ -140,7 +136,10 @@ export function ProjectFolders({ projectName, hideToolbar, ...props }: ProjectFo
 
   return (
     <Card {...props}>
-      <Box>{!isLoading && folders.map((folder) => <FolderAccordion key={folder.metadata.name} folder={folder} />)}</Box>
+      <Box>
+        {!isLoading &&
+          folders.map((folder) => <FolderAccordion key={folder.metadata.name} folder={folder} project={projectName} />)}
+      </Box>
     </Card>
   );
 }

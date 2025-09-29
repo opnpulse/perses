@@ -193,15 +193,18 @@ export function DashboardList(props: DashboardListProperties): ReactElement {
             },
           });
         } else {
-          navigate(`/projects/${targetedDashboard.metadata.project}/dashboard/new`, {
-            state: {
-              name: dashboardInfo.dashboard,
-              spec: {
-                ...targetedDashboard.spec,
-                display: { name: dashboardInfo.dashboard },
+          navigate(
+            `/projects/${targetedDashboard.metadata.project}/folders/${targetedDashboard.metadata.folderName}/dashboard/new`,
+            {
+              state: {
+                name: dashboardInfo.dashboard,
+                spec: {
+                  ...targetedDashboard.spec,
+                  display: { name: dashboardInfo.dashboard },
+                },
               },
-            },
-          });
+            }
+          );
         }
       }
     },

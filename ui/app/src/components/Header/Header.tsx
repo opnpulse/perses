@@ -79,46 +79,6 @@ export default function Header(): JSX.Element {
             flexItem
             sx={{ borderRightColor: 'rgba(255,255,255,0.2)', marginRight: 0.5 }}
           />
-          {!isMobileSize ? (
-            <>
-              {hasPartialPermission && (
-                <Button
-                  aria-label="Administration"
-                  aria-controls="menu-admin-appbar"
-                  aria-haspopup="true"
-                  color="inherit"
-                  component={RouterLink}
-                  to={AdminRoute}
-                >
-                  <ShieldStar sx={{ marginRight: 0.5 }} /> Admin
-                </Button>
-              )}
-              <Button
-                aria-label="Config"
-                aria-controls="menu-config-appbar"
-                aria-haspopup="true"
-                color="inherit"
-                component={RouterLink}
-                to={ConfigRoute}
-              >
-                <Cog sx={{ marginRight: 0.5 }} /> Config
-              </Button>
-              {IsExplorerEnabled && (
-                <Button
-                  aria-label="Explore"
-                  aria-controls="menu-config-appbar"
-                  aria-haspopup="true"
-                  color="inherit"
-                  component={RouterLink}
-                  to="/explore"
-                >
-                  <Compass sx={{ marginRight: 0.5 }} /> Explore
-                </Button>
-              )}
-            </>
-          ) : (
-            <ToolMenu />
-          )}
         </Box>
         <SearchBar />
         <Box

@@ -253,6 +253,7 @@ export function DashboardList(props: DashboardListProperties): ReactElement {
         <CreateDashboardDialog
           open={activeDialog.type === 'duplicateDashboard'}
           projects={[{ kind: 'Project', metadata: { name: activeDialog.target.metadata.project }, spec: {} }]}
+          folders={[{ kind: 'Folder', metadata: { name: activeDialog.target.metadata.folderName }, spec: {} }]}
           hideProjectSelect={true}
           mode="duplicate"
           name={getResourceDisplayName(activeDialog.target)}

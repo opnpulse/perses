@@ -20,10 +20,9 @@ import { ReactElement, useMemo } from 'react';
 import { DashboardResource } from '@perses-dev/client';
 import ProjectBreadcrumbs from '../../../components/breadcrumbs/ProjectBreadcrumbs';
 import { useDatasourceApi } from '../../../model/datasource-api';
-import { useGlobalVariableList } from '../../../model/global-variable-client';
 import { useProject } from '../../../model/project-client';
 import { useVariableList } from '../../../model/variable-client';
-import { buildGlobalVariableDefinition, buildProjectVariableDefinition } from '../../../utils/variables';
+import { buildProjectVariableDefinition } from '../../../utils/variables';
 import {
   useIsKeyboardShortcutsEnabled,
   useIsLocalDatasourceEnabled,
@@ -66,17 +65,13 @@ export function HelperDashboardView(props: GenericDashboardViewProps): ReactElem
 
   // Collect the Project variables and setup external variables from it
   const { data: project, isLoading: isLoadingProject } = useProject(dashboardResource.metadata.project);
-  const { data: globalVars, isLoading: isLoadingGlobalVars } = useGlobalVariableList();
   const { data: projectVars, isLoading: isLoadingProjectVars } = useVariableList(dashboardResource.metadata.project);
   const externalVariableDefinitions: ExternalVariableDefinition[] | undefined = useMemo(
-    () => [
-      buildProjectVariableDefinition(dashboardResource.metadata.project, projectVars ?? []),
-      buildGlobalVariableDefinition(globalVars ?? []),
-    ],
-    [dashboardResource, projectVars, globalVars]
+    () => [buildProjectVariableDefinition(dashboardResource.metadata.project, projectVars ?? [])],
+    [dashboardResource, projectVars]
   );
 
-  if (isLoadingProject || isLoadingProjectVars || isLoadingGlobalVars) {
+  if (isLoadingProject || isLoadingProjectVars) {
     return (
       <Stack width="100%" sx={{ alignItems: 'center', justifyContent: 'center' }}>
         <CircularProgress />

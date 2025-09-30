@@ -63,7 +63,7 @@ export function useCreateDashboardMutation(
  */
 export function useDashboard(
   project: string,
-  folder: string,
+  folder: string | undefined,
   name: string
 ): UseQueryResult<DashboardResource, StatusError> {
   const { data: decodedToken } = useAuthToken();
@@ -241,13 +241,21 @@ export function createDashboard(owner: string | undefined, entity: DashboardReso
 export function getDashboard(
   owner: string | undefined,
   project: string,
-  folder: string,
+  folder: string | undefined,
   name: string
 ): Promise<DashboardResource> {
-  const url = buildURL({ resource: resource, project: project, folder, name: name, owner });
+  const queryParams = new URLSearchParams();
+  queryParams.set('with_folder_name', 'true');
+
+  const url = buildURL({ resource: resource, project: project, folder, name: name, owner, queryParams });
   return fetchJson<DashboardResource>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
+  }).then((res) => {
+    if (folder) {
+      res.metadata.folder = folder;
+    }
+    return res;
   });
 }
 
@@ -293,7 +301,7 @@ export function updateDashboard(owner: string | undefined, entity: DashboardReso
   const url = buildURL({
     resource: resource,
     project: entity.metadata.project,
-    folder: entity.metadata.folderName,
+    folder: entity.metadata.folder,
     name: entity.metadata.name,
     owner,
   });

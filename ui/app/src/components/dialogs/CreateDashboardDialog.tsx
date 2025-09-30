@@ -74,21 +74,7 @@ export const CreateDashboardDialog = (props: CreateDashboardProps): ReactElement
       <Dialog.Header>
         {action} Dashboard{name && ': ' + name}
       </Dialog.Header>
-      {isEphemeralDashboardEnabled && mode === 'duplicate' && (
-        <Dialog.Content sx={{ width: '100%' }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isTempCopyChecked}
-                onChange={(event) => {
-                  setTempCopyChecked(event.target.checked);
-                }}
-              />
-            }
-            label="Create as a temporary copy"
-          />
-        </Dialog.Content>
-      )}
+
       {isTempCopyChecked ? (
         <EphemeralDashboardDuplicationForm
           {...{ projects: projects, folders, hideProjectSelect, onClose, onSuccess }}

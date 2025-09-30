@@ -61,11 +61,18 @@ export function useCreateDashboardMutation(
  * Used to get a dashboard in the API.
  * Will automatically be refreshed when cache is invalidated
  */
-export function useDashboard(project: string, name: string): UseQueryResult<DashboardResource, StatusError> {
+export function useDashboard(
+  project: string,
+  folder: string,
+  name: string
+): UseQueryResult<DashboardResource, StatusError> {
+  const { data: decodedToken } = useAuthToken();
+  const owner = decodedToken?.sub;
+
   return useQuery<DashboardResource, StatusError>({
-    queryKey: [resource, project, name],
+    queryKey: [resource, project, folder, name],
     queryFn: () => {
-      return getDashboard(project, name);
+      return getDashboard(owner, project, folder, name);
     },
   });
 }
@@ -231,8 +238,13 @@ export function createDashboard(owner: string | undefined, entity: DashboardReso
   });
 }
 
-export function getDashboard(project: string, name: string): Promise<DashboardResource> {
-  const url = buildURL({ resource: resource, project: project, name: name });
+export function getDashboard(
+  owner: string | undefined,
+  project: string,
+  folder: string,
+  name: string
+): Promise<DashboardResource> {
+  const url = buildURL({ resource: resource, project: project, folder, name: name, owner });
   return fetchJson<DashboardResource>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,

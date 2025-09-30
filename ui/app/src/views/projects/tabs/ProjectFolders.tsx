@@ -18,6 +18,7 @@ import { DeleteResourceDialog } from '../../../components/dialogs';
 import { useSnackbar } from '@perses-dev/components';
 import { UpdateFolderDialog } from '../../../components/dialogs/UpdateFolderDialog';
 import { useFolderBasedDashboardList } from '../../../model/dashboard-client';
+import { Typography } from '@mui/material';
 
 interface FolderAccordionProps {
   folder: FolderWithDashboards;
@@ -81,9 +82,9 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
           <Stack direction="row" alignItems="center" justifyContent="space-between" width="100%">
             <Stack direction="row" alignItems="center" gap={1}>
               <FolderIcon sx={{ margin: 1 }} />
-              <Link component={RouterLink} to={`/folders/${folder.metadata.name}`} variant="h3" underline="hover">
+              <Typography variant="h3" sx={{ fontWeight: 700 }} color="primary">
                 {folder.metadata.name}
-              </Link>
+              </Typography>
             </Stack>
             {hasPermission && (
               <Stack direction="row" gap={1}>

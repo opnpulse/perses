@@ -79,7 +79,10 @@ function CreateDashboardView(): ReactElement | null {
           successSnackbar(
             `Dashboard ${getResourceExtendedDisplayName(createdDashboard)} has been successfully created`
           );
-          navigate(`/projects/${createdDashboard.metadata.project}/dashboards/${createdDashboard.metadata.name}`);
+          navigate(
+            `/projects/${createdDashboard.metadata.project}/folders/${folderName}/dashboards/${createdDashboard.metadata.name}`
+          );
+          return createdDashboard;
         },
         onError: (err) => {
           setIsLeavingConfirmDialogEnabled(true); // Re-enable the leaving dialog if there was an error

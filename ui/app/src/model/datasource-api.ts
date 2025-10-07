@@ -20,9 +20,11 @@ import { useGlobalDatasourceList } from './global-datasource-client';
 export function buildProxyUrl({
   project,
   dashboard,
+  owner,
   name,
 }: {
   project?: string;
+  owner?: string | undefined;
   dashboard?: string;
   name: string;
 }): string {
@@ -34,7 +36,7 @@ export function buildProxyUrl({
   if (project) {
     url = `projects/${encodeURIComponent(project)}/${url}`;
   }
-  return `${basePath}/proxy/${url}`;
+  return `${basePath}/proxy/owners/${owner}/${url}`;
 }
 
 export function useDatasourceApi(): DatasourceApi {

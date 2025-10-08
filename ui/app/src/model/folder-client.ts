@@ -15,7 +15,7 @@ import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResul
 import { fetchJson, FolderResource, DashboardResource, StatusError } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
-import { useAuthToken } from './auth/auth-client';
+import { useActiveUser } from './auth/auth-client';
 
 export const resource: string = 'folders' as const;
 
@@ -32,9 +32,7 @@ export interface FolderListOptions {
  * Returns the list of folders (with embedded dashboards), optionally filtered by project.
  */
 export function useFolderList(options: FolderListOptions): UseQueryResult<FolderWithDashboards[], StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
-
+  const owner = useActiveUser();
   return useQuery<FolderWithDashboards[], StatusError>({
     queryKey: [resource, options.project],
     queryFn: () => getFolders(owner, options.project),
@@ -48,8 +46,7 @@ export function useCreateFolderMutation(
   onSuccess?: (data: FolderResource, variables: FolderResource) => Promise<unknown> | unknown
 ): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],
@@ -64,8 +61,7 @@ export function useCreateFolderMutation(
  */
 export function useUpdateFolderMutation(): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],
@@ -84,8 +80,7 @@ export function useUpdateFolderMutation(): UseMutationResult<FolderResource, Sta
  */
 export function useDeleteFolderMutation(): UseMutationResult<FolderResource, StatusError, FolderResource> {
   const queryClient = useQueryClient();
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<FolderResource, StatusError, FolderResource>({
     mutationKey: [resource],

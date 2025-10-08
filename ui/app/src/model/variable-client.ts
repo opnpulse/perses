@@ -16,7 +16,7 @@ import { fetchJson, StatusError, VariableResource } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import { buildQueryKey } from './querykey-builder';
-import { useAuthToken } from './auth-client';
+import { useActiveUser } from './auth/auth-client';
 
 export const resource = 'variables';
 
@@ -72,8 +72,7 @@ export function deleteVariable(owner: string | undefined, entity: VariableResour
  * Will automatically be refreshed when cache is invalidated
  */
 export function useVariable(name: string, project: string): UseQueryResult<VariableResource, StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<VariableResource, StatusError>({
     queryKey: buildQueryKey({ resource, name, parent: project }),
@@ -88,8 +87,7 @@ export function useVariable(name: string, project: string): UseQueryResult<Varia
  * Will automatically be refreshed when cache is invalidated
  */
 export function useVariableList(project?: string): UseQueryResult<VariableResource[], StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<VariableResource[], StatusError>({
     queryKey: buildQueryKey({ resource, parent: project }),
@@ -111,8 +109,7 @@ export function useCreateVariableMutation(
 ): UseMutationResult<VariableResource, StatusError, VariableResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<VariableResource, StatusError, VariableResource>({
     mutationKey: queryKey,
@@ -137,8 +134,7 @@ export function useUpdateVariableMutation(
 ): UseMutationResult<VariableResource, StatusError, VariableResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<VariableResource, StatusError, VariableResource>({
     mutationKey: queryKey,
@@ -166,8 +162,7 @@ export function useDeleteVariableMutation(
 ): UseMutationResult<VariableResource, StatusError, VariableResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<VariableResource, StatusError, VariableResource>({
     mutationKey: queryKey,

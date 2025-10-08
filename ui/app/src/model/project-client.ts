@@ -28,7 +28,7 @@ import { resource as variableResource } from './variable-client';
 import { resource as datasourceResource } from './datasource-client';
 import buildQueryKey from './querykey-builder';
 import { userKey } from './user-client';
-import { useAuthToken } from './auth-client';
+import { useActiveUser } from './auth/auth-client';
 
 const resource = 'projects';
 
@@ -93,8 +93,7 @@ function deleteProject(owner: string | undefined, entity: ProjectResource): Prom
  * Will automatically be refreshed when cache is invalidated
  */
 export function useProject(name: string): UseQueryResult<ProjectResource, StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<ProjectResource, StatusError>({
     queryKey: [resource, name],
@@ -111,13 +110,11 @@ export function useProject(name: string): UseQueryResult<ProjectResource, Status
  */
 export function useProjectList(options?: ProjectListOptions): UseQueryResult<ProjectResource[], StatusError> {
   const queryKey = buildQueryKey({ resource });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<ProjectResource[], StatusError>({
     queryKey,
     queryFn: () => getProjects(owner),
-    enabled: !!owner,
     ...options,
   });
 }
@@ -129,8 +126,7 @@ export function useProjectList(options?: ProjectListOptions): UseQueryResult<Pro
 export function useCreateProjectMutation(): UseMutationResult<ProjectResource, StatusError, ProjectResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<ProjectResource, StatusError, ProjectResource>({
     mutationKey: queryKey,
@@ -153,8 +149,7 @@ export function useCreateProjectMutation(): UseMutationResult<ProjectResource, S
 export function useUpdateProjectMutation(): UseMutationResult<ProjectResource, StatusError, ProjectResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<ProjectResource, StatusError, ProjectResource>({
     mutationKey: queryKey,
@@ -183,8 +178,7 @@ export function useUpdateProjectMutation(): UseMutationResult<ProjectResource, S
 export function useDeleteProjectMutation(): UseMutationResult<ProjectResource, StatusError, ProjectResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<ProjectResource, StatusError, ProjectResource>({
     mutationKey: queryKey,

@@ -23,7 +23,7 @@ import { DatasourceResource, fetchJson, StatusError } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import { buildQueryKey } from './querykey-builder';
-import { useAuthToken } from './auth-client';
+import { useActiveUser } from './auth/auth-client';
 
 export const resource = 'datasources';
 
@@ -83,9 +83,8 @@ export function deleteDatasource(owner: string | undefined, entity: DatasourceRe
  * Will automatically be refreshed when cache is invalidated
  */
 export function useDatasource(name: string, project: string): UseQueryResult<DatasourceResource, StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
-  
+  const owner = useActiveUser();
+
   return useQuery<DatasourceResource, StatusError>({
     queryKey: buildQueryKey({ resource, name, parent: project }),
     queryFn: () => {
@@ -99,8 +98,7 @@ export function useDatasource(name: string, project: string): UseQueryResult<Dat
  * Will automatically be refreshed when cache is invalidated
  */
 export function useDatasourceList(options: DatasourceListOptions): UseQueryResult<DatasourceResource[], StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<DatasourceResource[], StatusError>({
     queryKey: buildQueryKey({ resource, parent: options.project }),
@@ -124,8 +122,7 @@ export function useCreateDatasourceMutation(
 ): UseMutationResult<DatasourceResource, StatusError, DatasourceResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<DatasourceResource, StatusError, DatasourceResource>({
     mutationKey: queryKey,
@@ -150,8 +147,7 @@ export function useUpdateDatasourceMutation(
 ): UseMutationResult<DatasourceResource, StatusError, DatasourceResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<DatasourceResource, StatusError, DatasourceResource>({
     mutationKey: queryKey,
@@ -179,8 +175,7 @@ export function useDeleteDatasourceMutation(
 ): UseMutationResult<DatasourceResource, StatusError, DatasourceResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<DatasourceResource, StatusError, DatasourceResource>({
     mutationKey: queryKey,

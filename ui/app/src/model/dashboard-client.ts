@@ -25,7 +25,7 @@ import { useNavHistory } from '../context/DashboardNavHistory';
 import { useImportantDashboardSelectors } from '../context/Config';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import buildURL from './url-builder';
-import { useAuthToken } from './auth-client';
+import { useActiveUser } from './auth/auth-client';
 
 export const resource = 'dashboards';
 
@@ -42,8 +42,7 @@ export function useCreateDashboardMutation(
   onSuccess?: (data: DashboardResource, variables: DashboardResource) => Promise<unknown> | unknown
 ): UseMutationResult<DashboardResource, StatusError, DashboardResource> {
   const queryClient = useQueryClient();
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<DashboardResource, StatusError, DashboardResource>({
     mutationKey: [resource],
@@ -66,8 +65,7 @@ export function useDashboard(
   folder: string | undefined,
   name: string
 ): UseQueryResult<DashboardResource, StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<DashboardResource, StatusError>({
     queryKey: [resource, project, folder, name],
@@ -82,8 +80,7 @@ export function useDashboard(
  * Will automatically be refreshed when cache is invalidated
  */
 export function useDashboardList(options: DashboardListOptions): UseQueryResult<DashboardResource[], StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<DashboardResource[], StatusError>({
     queryKey: [resource, options.project, options.metadataOnly],
@@ -100,8 +97,7 @@ export function useFolderBasedDashboardList(
   folder?: string,
   options?: Omit<UseQueryOptions<DashboardResource[], StatusError>, 'queryKey' | 'queryFn'>
 ): UseQueryResult<DashboardResource[], StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<DashboardResource[], StatusError>({
     queryKey: [resource, project, folder],
@@ -191,8 +187,7 @@ export function useImportantDashboardList(project?: string): {
  */
 export function useUpdateDashboardMutation(): UseMutationResult<DashboardResource, Error, DashboardResource> {
   const queryClient = useQueryClient();
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<DashboardResource, Error, DashboardResource>({
     mutationKey: [resource],
@@ -211,8 +206,7 @@ export function useUpdateDashboardMutation(): UseMutationResult<DashboardResourc
  */
 export function useDeleteDashboardMutation(): UseMutationResult<DashboardResource, Error, DashboardResource> {
   const queryClient = useQueryClient();
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<DashboardResource, Error, DashboardResource>({
     mutationKey: [resource],

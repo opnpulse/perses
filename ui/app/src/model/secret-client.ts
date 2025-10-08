@@ -16,7 +16,7 @@ import { fetchJson, SecretResource, StatusError } from '@perses-dev/client';
 import buildURL from './url-builder';
 import { HTTPHeader, HTTPMethodDELETE, HTTPMethodGET, HTTPMethodPOST, HTTPMethodPUT } from './http';
 import { buildQueryKey } from './querykey-builder';
-import { useAuthToken } from './auth-client';
+import { useActiveUser } from './auth/auth-client';
 
 export const resource = 'secrets';
 
@@ -72,8 +72,7 @@ export function deleteSecret(owner: string | undefined, entity: SecretResource):
  * Will automatically be refreshed when cache is invalidated
  */
 export function useSecret(name: string, project: string): UseQueryResult<SecretResource, StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<SecretResource, StatusError>({
     queryKey: buildQueryKey({ resource, name, parent: project }),
@@ -89,8 +88,7 @@ export function useSecret(name: string, project: string): UseQueryResult<SecretR
  * Will automatically be refreshed when cache is invalidated
  */
 export function useSecretList(project?: string): UseQueryResult<SecretResource[], StatusError> {
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useQuery<SecretResource[], StatusError>({
     queryKey: buildQueryKey({ resource, parent: project }),
@@ -114,8 +112,7 @@ export function useCreateSecretMutation(
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
 
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<SecretResource, StatusError, SecretResource>({
     mutationKey: queryKey,
@@ -141,8 +138,7 @@ export function useUpdateSecretMutation(
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
 
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<SecretResource, StatusError, SecretResource>({
     mutationKey: queryKey,
@@ -171,8 +167,7 @@ export function useDeleteSecretMutation(
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource, parent: project });
 
-  const { data: decodedToken } = useAuthToken();
-  const owner = decodedToken?.sub;
+  const owner = useActiveUser();
 
   return useMutation<SecretResource, StatusError, SecretResource>({
     mutationKey: queryKey,

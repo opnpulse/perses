@@ -17,14 +17,14 @@ import AccountCircle from 'mdi-material-ui/AccountCircle';
 import AccountBox from 'mdi-material-ui/AccountBox';
 import Logout from 'mdi-material-ui/Logout';
 import { Link as RouterLink } from 'react-router-dom';
-import { useUsername } from '../../model/auth/auth-client';
+import { useActiveUser } from '../../model/auth/auth-client';
 import { ProfileRoute } from '../../model/route';
 import { useIsDelegatedAuthnProviderEnabled } from '../../context/Config';
 import { PERSES_APP_CONFIG } from '../../config';
 import { ThemeSwitch } from './ThemeSwitch';
 
 export function AccountMenu(): ReactElement {
-  const username = useUsername();
+  const owner = useActiveUser();
   const isDelegatedAuthnProviderEnabled = useIsDelegatedAuthnProviderEnabled();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -60,7 +60,7 @@ export function AccountMenu(): ReactElement {
           <ListItemIcon>
             <AccountCircle />
           </ListItemIcon>
-          {username}
+          {owner}
         </MenuItem>
         <Divider />
         <ThemeSwitch isAuthEnabled />

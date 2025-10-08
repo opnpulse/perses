@@ -16,7 +16,7 @@ import { Action, Permission, ProjectResource, Scope } from '@perses-dev/client';
 import { useUserPermissions } from '../model/user-client';
 import { useProjectList } from '../model/project-client';
 import { enableRefreshFetch } from '../model/fetch';
-import { useUsername } from '../model/auth/auth-client';
+import { useActiveUser } from '../model/auth/auth-client';
 import { useIsDelegatedAuthnProviderEnabled, useIsAuthEnabled } from './Config';
 
 // Used as placeholder for checking Global permissions
@@ -39,7 +39,8 @@ export function AuthorizationProvider(props: { children: ReactNode }): ReactElem
     enableRefreshFetch();
   }
 
-  const username = useUsername();
+  const owner = useActiveUser();
+  const username = owner || '';
   const { data } = useUserPermissions(username);
   const userPermissions: Record<string, Permission[]> = useMemo(() => {
     if (!data) {

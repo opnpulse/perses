@@ -60,7 +60,7 @@ export function HelperDashboardView(props: GenericDashboardViewProps): ReactElem
   const isLocalDatasourceEnabled = useIsLocalDatasourceEnabled();
   const isLocalVariableEnabled = useIsLocalVariableEnabled();
   const isKeyboardShortcutsEnabled = useIsKeyboardShortcutsEnabled();
-  const datasourceApi = useDatasourceApi();
+  const datasourceApi = useDatasourceApi(dashboardResource.metadata.project);
   const pluginLoader = useRemotePluginLoader();
 
   // Collect the Project variables and setup external variables from it

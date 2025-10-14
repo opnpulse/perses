@@ -31,7 +31,7 @@ import ExpandLess from 'mdi-material-ui/ChevronUp';
 import ExpandMore from 'mdi-material-ui/ChevronDown';
 import { Link as RouterLink } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
-import { useActiveUser, useOrganizationList } from '../../model/auth/auth-client';
+import { useActiveUser, useOrganizationList, useUserApi } from '../../model/auth/auth-client';
 import { ProfileRoute } from '../../model/route';
 import { useIsDelegatedAuthnProviderEnabled } from '../../context/Config';
 import { PERSES_APP_CONFIG } from '../../config';
@@ -52,7 +52,8 @@ export function AccountMenu(): ReactElement {
     { id: 'appscode1', name: 'appscode1', type: 'Organization' },
   ];
 
-  const { data: orgs, isLoading } = useOrganizationList(undefined);
+  const { data: user, isLoading: loadingUser } = useUserApi();
+  const { data: orgs, isLoading } = useOrganizationList(user?.metadata?.name);
 
   const handleMenu = (event: MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);

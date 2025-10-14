@@ -224,3 +224,11 @@ export function getUser(): Promise<Response> {
     headers: HTTPHeader,
   });
 }
+
+export function getOrganizations(user: string): Promise<Response> {
+  const url = buildURL({ resource: `users/${user}/orgs` });
+  return fetch(url, {
+    method: HTTPMethodGET,
+    headers: HTTPHeader,
+  });
+}

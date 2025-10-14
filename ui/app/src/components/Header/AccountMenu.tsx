@@ -31,25 +31,28 @@ import ExpandLess from 'mdi-material-ui/ChevronUp';
 import ExpandMore from 'mdi-material-ui/ChevronDown';
 import { Link as RouterLink } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
-import { useActiveUser } from '../../model/auth/auth-client';
+import { useActiveUser, useOrganizationList } from '../../model/auth/auth-client';
 import { ProfileRoute } from '../../model/route';
 import { useIsDelegatedAuthnProviderEnabled } from '../../context/Config';
 import { PERSES_APP_CONFIG } from '../../config';
 import { ThemeSwitch } from './ThemeSwitch';
 import { activeOrganization } from '../../constants/auth-token';
 import { Typography } from '@mui/material';
+import CheckIcon from 'mdi-material-ui/Check';
 
 export function AccountMenu(): ReactElement {
   const owner = useActiveUser();
   const isDelegatedAuthnProviderEnabled = useIsDelegatedAuthnProviderEnabled();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openSwitch, setOpenSwitch] = useState(false);
-  const [cookies, setCookie] = useCookies([activeOrganization]);
+  const [cookies, setCookie, removeCookie] = useCookies([activeOrganization]);
 
   const accounts = [
     { id: 'perses', name: 'perses', type: 'Personal Account' },
     { id: 'appscode1', name: 'appscode1', type: 'Organization' },
   ];
+
+  const { data: orgs, isLoading } = useOrganizationList(undefined);
 
   const handleMenu = (event: MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
@@ -103,9 +106,7 @@ export function AccountMenu(): ReactElement {
             )}
           </Box>
         </MenuItem>
-
         <Divider />
-
         <MenuItem onClick={handleToggleSwitch}>
           <ListItemIcon>
             <AccountBox />
@@ -118,10 +119,11 @@ export function AccountMenu(): ReactElement {
           <List disablePadding>
             {accounts.map((acc) => (
               <ListItemButton key={acc.id} selected={owner === acc.id} onClick={() => handleSwitchAccount(acc.id)}>
-                <ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 36 }}>
                   <AccountCircle />
                 </ListItemIcon>
                 <ListItemText primary={acc.name} secondary={acc.type} />
+                {owner === acc.id && <CheckIcon color="primary" />}
               </ListItemButton>
             ))}
           </List>

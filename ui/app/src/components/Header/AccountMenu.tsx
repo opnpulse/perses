@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { MouseEvent, ReactElement, useState } from 'react';
+import { MouseEvent, ReactElement, useMemo, useState } from 'react';
 import {
   Divider,
   IconButton,
@@ -45,15 +45,30 @@ export function AccountMenu(): ReactElement {
   const isDelegatedAuthnProviderEnabled = useIsDelegatedAuthnProviderEnabled();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openSwitch, setOpenSwitch] = useState(false);
-  const [cookies, setCookie, removeCookie] = useCookies([activeOrganization]);
+  const [cookies, setCookie] = useCookies([activeOrganization]);
+  const { data: user } = useUserApi();
+  const { data: orgs } = useOrganizationList(user?.metadata?.name);
 
-  const accounts = [
-    { id: 'perses', name: 'perses', type: 'Personal Account' },
-    { id: 'appscode1', name: 'appscode1', type: 'Organization' },
-  ];
+  const accounts = useMemo(() => {
+    if (!user && !orgs) return [];
 
-  const { data: user, isLoading: loadingUser } = useUserApi();
-  const { data: orgs, isLoading } = useOrganizationList(user?.metadata?.name);
+    const userAccount = user
+      ? [
+          {
+            ...user,
+            user_type: 'user',
+          },
+        ]
+      : [];
+
+    const orgAccounts =
+      orgs?.map((org: any) => ({
+        ...org,
+        user_type: 'org',
+      })) ?? [];
+
+    return [...userAccount, ...orgAccounts];
+  }, [user, orgs]);
 
   const handleMenu = (event: MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
@@ -68,7 +83,11 @@ export function AccountMenu(): ReactElement {
     setCookie(activeOrganization, accountId, { path: '/' });
     setAnchorEl(null);
   };
-  const currentAccount = accounts.find((acc) => acc.id === owner);
+  const currentAccount = accounts.find((acc) => acc.metadata?.name === owner);
+
+  const getAccountTypeLabel = (userType: string) => {
+    return userType === 'user' ? 'Personal Account' : 'Organization';
+  };
 
   return (
     <>
@@ -102,7 +121,7 @@ export function AccountMenu(): ReactElement {
             </Typography>
             {currentAccount && (
               <Typography variant="body2" color="text.secondary">
-                {currentAccount.type}
+                {getAccountTypeLabel(currentAccount.user_type)}
               </Typography>
             )}
           </Box>
@@ -119,12 +138,16 @@ export function AccountMenu(): ReactElement {
         <Collapse in={openSwitch} timeout="auto" unmountOnExit>
           <List disablePadding>
             {accounts.map((acc) => (
-              <ListItemButton key={acc.id} selected={owner === acc.id} onClick={() => handleSwitchAccount(acc.id)}>
+              <ListItemButton
+                key={acc.metadata?.name}
+                selected={owner === acc.metadata?.name}
+                onClick={() => handleSwitchAccount(acc.metadata?.name)}
+              >
                 <ListItemIcon sx={{ minWidth: 36 }}>
                   <AccountCircle />
                 </ListItemIcon>
-                <ListItemText primary={acc.name} secondary={acc.type} />
-                {owner === acc.id && <CheckIcon color="primary" />}
+                <ListItemText primary={acc.metadata?.name} secondary={getAccountTypeLabel(acc.user_type)} />
+                {owner === acc.metadata?.name && <CheckIcon color="primary" />}
               </ListItemButton>
             ))}
           </List>

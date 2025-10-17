@@ -48,7 +48,12 @@ import HomeView from './views/home/HomeView';
 // Default route is eagerly loaded
 import App from './App';
 import { PERSES_APP_CONFIG } from './config';
-import { buildRedirectQueryString, useIsLoggedIn, useRedirectQueryParam } from './model/auth/auth-client';
+import {
+  buildRedirectQueryString,
+  useIsAccessTokenExist,
+  useIsLoggedIn,
+  useRedirectQueryParam,
+} from './model/auth/auth-client';
 
 // Other routes are lazy-loaded for code-splitting
 const ImportView = lazy(() => import('./views/import/ImportView'));
@@ -247,7 +252,8 @@ function RequireAuth(): ReactElement {
 
 function RequireAuthEnabled(): ReactElement {
   const isAuthEnabled = useIsAuthEnabled();
-  if (!isAuthEnabled) {
+  const isAccessTokenExist = useIsAccessTokenExist();
+  if (!isAuthEnabled || isAccessTokenExist) {
     return <Navigate to="/" replace />;
   }
   return <Outlet />;

@@ -135,6 +135,12 @@ interface ProjectFoldersProps extends CardProps {
 export function ProjectFolders({ projectName, hideToolbar, ...props }: ProjectFoldersProps): ReactElement {
   const { data: folders = [], isLoading } = useFolderList({ project: projectName });
 
+  if (folders.length === 0) {
+    return (
+      <Typography sx={{ fontStyle: 'italic', color: 'warning.main' }}>No folders with dashboards found!</Typography>
+    );
+  }
+
   return (
     <Card {...props}>
       <Box>

@@ -14,7 +14,7 @@
 import { StatusError } from '@perses-dev/client';
 import { refreshToken } from './auth/auth-client';
 
-const JWT_COOKIES = ['jwtPayload', 'jwtSignature', 'jwtRefreshToken'];
+const JWT_COOKIES = ['jwtPayload', 'jwtSignature', 'jwtRefreshToken', 'activeOrganization'];
 
 // Delete a cookie by setting its expiration date to the past
 function deleteCookie(name: string): void {
@@ -28,18 +28,8 @@ export function enableRefreshFetch(): void {
         .apply(that, args)
         .then((res) => {
           if (res.status === 401) {
-            return refreshToken()
-              .then(() => {
-                return target.apply(that, args);
-              })
-              .catch((refreshError: StatusError) => {
-                if (refreshError.status === 400) {
-                  // If refresh token fails, remove jwt cookies
-                  // This will force the user to be redirected to the login page
-                  JWT_COOKIES.forEach(deleteCookie);
-                }
-                throw refreshError;
-              });
+            JWT_COOKIES.forEach(deleteCookie);
+            return res;
           }
           return res;
         })

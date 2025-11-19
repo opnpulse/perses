@@ -35,11 +35,12 @@ import {
 } from '../../validation';
 import { generateMetadataName } from '../../utils/metadata';
 import { useFolderBasedDashboardList } from '../../model/dashboard-client';
+import { useFolderList } from '../../model/folder-client';
 
 interface CreateDashboardProps {
   open: boolean;
   projects: ProjectResource[];
-  folders: FolderResource[];
+  folders?: FolderResource[];
   hideProjectSelect?: boolean;
   mode?: 'create' | 'duplicate';
   name?: string;
@@ -89,7 +90,7 @@ export const CreateDashboardDialog = (props: CreateDashboardProps): ReactElement
 
 interface DuplicationFormProps {
   projects: ProjectResource[];
-  folders: FolderResource[];
+  folders?: FolderResource[];
   hideProjectSelect?: boolean;
   onClose: DispatchWithoutAction;
   onSuccess?: Dispatch<DashboardSelector | EphemeralDashboardInfo>;
@@ -97,14 +98,14 @@ interface DuplicationFormProps {
 
 /* TODO: Why does it receive an array of projects and not a single project?! */
 const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => {
-  const { projects, folders, hideProjectSelect, onClose, onSuccess } = props;
+  const { projects, folders: foldersProp, hideProjectSelect, onClose, onSuccess } = props;
 
   const dashboardForm = useForm<CreateDashboardValidationType>({
     mode: 'onChange',
     defaultValues: {
       dashboardName: '',
       projectName: projects[0]?.metadata.name ?? '',
-      folderName: folders[0]?.metadata.name ?? '',
+      folderName: '',
       tags: [],
     },
   });
@@ -112,6 +113,15 @@ const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => 
   const projectName = dashboardForm.watch('projectName');
   const folderName = dashboardForm.watch('folderName');
   const dashboardName = dashboardForm.watch('dashboardName');
+
+  const { data: fetchedFolders = [] } = useFolderList({ project: projectName });
+  const folders = foldersProp ?? fetchedFolders;
+
+  useEffect(() => {
+    if (folders.length > 0 && !folderName) {
+      dashboardForm.setValue('folderName', folders[0]?.metadata.name ?? '');
+    }
+  }, [folders, folderName, dashboardForm]);
 
   const { data: dashboards, isLoading: isDashboardsLoading } = useFolderBasedDashboardList(projectName, folderName);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -131,7 +141,7 @@ const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => 
     if (exists) {
       dashboardForm.setError('dashboardName', {
         type: 'manual',
-        message: `Dashboard name '${dashboardName}' already exists in '${projectName}'!`,
+        message: `Dashboard name '${dashboardName}' already exists in project '${projectName}' and folder '${folderName}'!`,
       });
       setIsFormValid(false);
     } else {

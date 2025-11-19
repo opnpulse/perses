@@ -24,7 +24,6 @@ import { AuthorizationProvider } from './context/Authorization';
 import {
   ConfigContextProvider,
   useIsAuthEnabled,
-  useIsDelegatedAuthnProviderEnabled,
   useIsEphemeralDashboardEnabled,
   useIsExplorerEnabled,
 } from './context/Config';
@@ -33,27 +32,18 @@ import { NavHistoryProvider } from './context/DashboardNavHistory';
 import {
   AdminRoute,
   ConfigRoute,
-  DelegatedAuthnErrorRoute,
   ExploreRoute,
   ImportRoute,
+  LoginUrl,
+  PlatformLoginRoute,
   ProfileRoute,
   ProjectRoute,
-  SignInRoute,
-  SignUpRoute,
 } from './model/route';
-import SignInView from './views/auth/SignInView';
-import SignUpView from './views/auth/SignUpView';
-import DelegatedAuthnErrorView from './views/auth/DelegatedAuthnErrorView';
 import HomeView from './views/home/HomeView';
 // Default route is eagerly loaded
 import App from './App';
 import { PERSES_APP_CONFIG } from './config';
-import {
-  buildRedirectQueryString,
-  useIsAccessTokenExist,
-  useIsLoggedIn,
-  useRedirectQueryParam,
-} from './model/auth/auth-client';
+import { buildRedirectQueryString, useIsAccessTokenExist } from './model/auth/auth-client';
 
 // Other routes are lazy-loaded for code-splitting
 const ImportView = lazy(() => import('./views/import/ImportView'));
@@ -167,29 +157,16 @@ function Router(): ReactElement {
             ],
           },
           {
-            path: '',
-            element: <AlreadyLoggedIn />,
-            children: [
-              {
-                path: SignInRoute,
-                element: <RequireAuthEnabled />,
-                children: [{ index: true, Component: SignInView }],
-              },
-              {
-                path: SignUpRoute,
-                element: <RequireAuthEnabled />,
-                children: [{ index: true, Component: SignUpView }],
-              },
-              {
-                path: DelegatedAuthnErrorRoute,
-                element: <RequireAuthEnabled />,
-                children: [{ index: true, Component: DelegatedAuthnErrorView }],
-              },
-            ],
+            path: PlatformLoginRoute,
+            element: <RequireAuthEnabled />,
+            children: [{ index: true, Component: Outlet }],
           },
         ],
       },
-      { path: '*', element: <Navigate to="/" replace /> },
+      {
+        path: '*',
+        element: <CatchAllRedirect />,
+      },
     ],
     { basename: PERSES_APP_CONFIG.api_prefix }
   );
@@ -199,6 +176,41 @@ function Router(): ReactElement {
       <RouterProvider router={router} />
     </Suspense>
   );
+}
+
+/**
+ * This component aims to redirect the user to the SignIn page if not logged in.
+ * Otherwise, it just loads the underlying component(s) defined as children.
+ * This is leveraging the following mechanism:
+ * https://reactrouter.com/en/main/upgrading/v5#refactor-custom-routes
+ * https://gist.github.com/mjackson/d54b40a094277b7afdd6b81f51a0393f
+ * @param children
+ * @constructor
+ */
+function RequireAuth(): ReactElement | null {
+  const isAuthEnabled = useIsAuthEnabled();
+  const isAccessTokenExist = useIsAccessTokenExist();
+  const location = useLocation();
+  if (!isAuthEnabled || isAccessTokenExist) {
+    return <Outlet />;
+  }
+
+  let redirectUrl = LoginUrl;
+  if (location.pathname !== '' && location.pathname !== '/') {
+    redirectUrl += `?${buildRedirectQueryString(location.pathname + location.search)}`;
+  }
+  window.location.href = redirectUrl;
+
+  return null;
+}
+
+function RequireAuthEnabled(): ReactElement {
+  const isAuthEnabled = useIsAuthEnabled();
+  const isAccessTokenExist = useIsAccessTokenExist();
+  if (!isAuthEnabled || isAccessTokenExist) {
+    return <Navigate to="/" replace />;
+  }
+  return <Outlet />;
 }
 
 function RequireExplorerEnabled(): ReactElement {
@@ -217,46 +229,14 @@ function RequireEphemeralDashboardEnabled(): ReactElement {
   return <Outlet />;
 }
 
-function AlreadyLoggedIn(): ReactElement {
-  const isLoggedIn = useIsLoggedIn();
-  const params = useRedirectQueryParam();
-  if (isLoggedIn) {
-    return <Navigate to={params} replace />;
-  }
-  return <Outlet />;
-}
-
-/**
- * This component aims to redirect the user to the SignIn page if not logged in
- * or to the delegated authn error page if there is an error with the delegated authn.
- * Otherwise, it just loads the underlying component(s) defined as children.
- * This is leveraging the following mechanism:
- * https://reactrouter.com/en/main/upgrading/v5#refactor-custom-routes
- * https://gist.github.com/mjackson/d54b40a094277b7afdd6b81f51a0393f
- * @constructor
- */
-function RequireAuth(): ReactElement {
-  const isDelegatedAuthnProviderEnabled = useIsDelegatedAuthnProviderEnabled();
-  const isAuthEnabled = useIsAuthEnabled();
-  const isLoggedIn = useIsLoggedIn();
+function CatchAllRedirect(): ReactElement {
   const location = useLocation();
-  if (!isAuthEnabled || isLoggedIn) {
+
+  if (location.pathname === PlatformLoginRoute) {
     return <Outlet />;
   }
-  let to = isDelegatedAuthnProviderEnabled ? DelegatedAuthnErrorRoute : SignInRoute;
-  if (location.pathname !== '' && location.pathname !== '/') {
-    to += `?${buildRedirectQueryString(location.pathname + location.search)}`;
-  }
-  return <Navigate to={to} />;
-}
 
-function RequireAuthEnabled(): ReactElement {
-  const isAuthEnabled = useIsAuthEnabled();
-  const isAccessTokenExist = useIsAccessTokenExist();
-  if (!isAuthEnabled || isAccessTokenExist) {
-    return <Navigate to="/" replace />;
-  }
-  return <Outlet />;
+  return <Navigate to="/" replace />;
 }
 
 export default Router;

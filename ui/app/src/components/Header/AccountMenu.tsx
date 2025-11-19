@@ -32,8 +32,8 @@ import ExpandMore from 'mdi-material-ui/ChevronDown';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { useActiveUser, useOrganizationList, useUserApi } from '../../model/auth/auth-client';
-import { ProfileRoute } from '../../model/route';
-import { useIsDelegatedAuthnProviderEnabled } from '../../context/Config';
+import { LoginUrl, LogoutUrl, ProfileRoute } from '../../model/route';
+import { HTTPHeader, HTTPMethodGET } from '../../model/http';
 import { PERSES_APP_CONFIG } from '../../config';
 import { ThemeSwitch } from './ThemeSwitch';
 import { activeOrganization } from '../../constants/auth-token';
@@ -42,7 +42,6 @@ import CheckIcon from 'mdi-material-ui/Check';
 
 export function AccountMenu(): ReactElement {
   const owner = useActiveUser();
-  const isDelegatedAuthnProviderEnabled = useIsDelegatedAuthnProviderEnabled();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -89,6 +88,14 @@ export function AccountMenu(): ReactElement {
     if (pathname !== basePath) {
       navigate('/');
     }
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    await fetch(LogoutUrl, {
+      method: HTTPMethodGET,
+      headers: HTTPHeader,
+    });
+    window.location.href = LoginUrl;
   };
   const currentAccount = accounts.find((acc) => acc.metadata?.name === owner);
 
@@ -168,16 +175,12 @@ export function AccountMenu(): ReactElement {
           </ListItemIcon>
           Profile
         </MenuItem>
-        {/* Since perses doesn't have control over delegated authn providers, don't show the
-          logout button when one is enabled */}
-        {!isDelegatedAuthnProviderEnabled && (
-          <MenuItem component="a" href={`${PERSES_APP_CONFIG.api_prefix}/api/auth/logout`}>
-            <ListItemIcon>
-              <Logout />
-            </ListItemIcon>
-            Logout
-          </MenuItem>
-        )}
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <Logout />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
       </Menu>
     </>
   );

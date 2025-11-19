@@ -19,7 +19,7 @@ import Header from './components/Header/Header';
 import Footer from './components/Footer';
 import { GlobalShortcuts } from './components/GlobalShortcuts';
 import { ShortcutHelpModal } from './components/ShortcutHelpModal';
-import { DelegatedAuthnErrorRoute, SignInRoute, SignUpRoute } from './model/route';
+import { PlatformLoginRoute, SignUpRoute } from './model/route';
 import { PersesLoader } from './components/PersesLoader';
 import { useIsKeyboardShortcutsEnabled } from './context/Config';
 import './i18n/i18n';
@@ -47,9 +47,7 @@ function App(): ReactElement {
           <ShortcutHelpModal />
         </>
       )}
-      {location.pathname !== SignInRoute &&
-        location.pathname !== SignUpRoute &&
-        location.pathname !== DelegatedAuthnErrorRoute && <Header />}
+      {location.pathname !== PlatformLoginRoute && location.pathname !== SignUpRoute && <Header />}
 
       <Box
         sx={{

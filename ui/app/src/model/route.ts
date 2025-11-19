@@ -14,10 +14,13 @@
 export const AdminRoute = '/admin';
 export const SignInRoute = '/sign-in';
 export const SignUpRoute = '/sign-up';
-export const DelegatedAuthnErrorRoute = '/delegated-auth-error';
 export const ConfigRoute = '/config';
 export const ImportRoute = '/import';
 export const ProjectRoute = '/projects';
 export const ExploreRoute = '/explore';
 export const ProfileRoute = '/profile';
 export const FolderRoute = '/folders';
+export const PlatformLoginRoute = '/accounts/user/login';
+export const PlatformLogoutRoute = '/accounts/user/logout';
+export const LoginUrl = window.location.origin + PlatformLoginRoute;
+export const LogoutUrl = window.location.origin + PlatformLogoutRoute;

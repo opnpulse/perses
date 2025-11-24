@@ -13,7 +13,7 @@
 
 import { Box } from '@mui/material';
 import { Outlet, useLocation } from 'react-router-dom';
-import { ReactElement, Suspense } from 'react';
+import { ReactElement, Suspense, useEffect } from 'react';
 import { ReactRouterProvider } from '@perses-dev/plugin-system';
 import Header from './components/Header/Header';
 import Footer from './components/Footer';
@@ -23,6 +23,7 @@ import { PlatformLoginRoute, SignUpRoute } from './model/route';
 import { PersesLoader } from './components/PersesLoader';
 import { useIsKeyboardShortcutsEnabled } from './context/Config';
 import './i18n/i18n';
+import { useBranding } from './model/branding-client';
 
 function isDashboardViewRoute(pathname: string): boolean {
   return /\/projects\/[a-zA-Z0-9_]+\/dashboards\/[a-zA-Z0-9_]+/.test(pathname);
@@ -31,6 +32,16 @@ function isDashboardViewRoute(pathname: string): boolean {
 function App(): ReactElement {
   const location = useLocation();
   const isKeyboardShortcutsEnabled = useIsKeyboardShortcutsEnabled();
+  const { data: branding } = useBranding();
+
+  useEffect(() => {
+    if (branding?.favicons?.favicon96x96) {
+      const favicon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (favicon) {
+        favicon.href = branding.favicons?.favicon96x96;
+      }
+    }
+  }, [branding]);
 
   return (
     <Box

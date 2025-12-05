@@ -97,6 +97,7 @@ export function AccountMenu(): ReactElement {
     });
     window.location.href = LoginUrl;
   };
+
   const currentAccount = accounts.find((acc) => acc.metadata?.name === owner);
 
   const getAccountTypeLabel = (userType: string) => {

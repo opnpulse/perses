@@ -43,7 +43,7 @@ import * as React from 'react';
 import Gitlab from 'mdi-material-ui/Gitlab';
 import Bitbucket from 'mdi-material-ui/Bitbucket';
 import { useDarkMode } from '../../context/DarkMode';
-import PersesLogoCropped from '../../components/logo/PersesLogoCropped';
+import PersesLogoCropped from '../../components/logo/AppscodeLogoCropped';
 import DarkThemePersesLogo from '../../components/logo/DarkThemePersesLogo';
 import LightThemePersesLogo from '../../components/logo/LightThemePersesLogo';
 import { useIsLaptopSize } from '../../utils/browser-size';

@@ -13,21 +13,18 @@
 
 import { Link as RouterLink } from 'react-router-dom';
 import { AppBar, Box, Button, Divider, Toolbar } from '@mui/material';
-import Cog from 'mdi-material-ui/Cog';
-import ShieldStar from 'mdi-material-ui/ShieldStar';
-import Compass from 'mdi-material-ui/Compass';
-import React from 'react';
 import { useIsLaptopSize, useIsMobileSize } from '../../utils/browser-size';
 import { AdminRoute, ConfigRoute } from '../../model/route';
 import { useIsAuthEnabled, useIsExplorerEnabled } from '../../context/Config';
 import { GlobalProject, useHasPartialPermission } from '../../context/Authorization';
-import WhitePersesLogo from '../logo/WhitePersesLogo';
-import PersesLogoCropped from '../logo/PersesLogoCropped';
+import AppscodeLogoCropped from '../logo/AppscodeLogoCropped';
+import ObserveLabel from '../logo/ObserveLabel';
 import { BannerInfo } from '../BannerInfo';
 import { ToolMenu } from './ToolMenu';
 import { AccountMenu } from './AccountMenu';
 import { ThemeSwitch } from './ThemeSwitch';
 import { SearchBar } from './SearchBar/SearchBar';
+import AppscodeLogo from '../logo/AppscodeLogo';
 
 export default function Header(): JSX.Element {
   const isLaptopSize = useIsLaptopSize();
@@ -63,6 +60,8 @@ export default function Header(): JSX.Element {
             alignItems: 'center',
             width: '100%',
             flexShrink: isMobileSize ? 2 : 1,
+            pl: isLaptopSize ? 2 : 0,
+            gap: 2,
           }}
         >
           <Button
@@ -72,13 +71,9 @@ export default function Header(): JSX.Element {
               padding: 0,
             }}
           >
-            {isLaptopSize ? <WhitePersesLogo /> : <PersesLogoCropped color="white" width={32} height={32} />}
+            {isLaptopSize ? <AppscodeLogo /> : <AppscodeLogoCropped color="white" width={32} height={32} />}
           </Button>
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ borderRightColor: 'rgba(255,255,255,0.2)', marginRight: 0.5 }}
-          />
+          {isLaptopSize && <ObserveLabel />}
         </Box>
         <SearchBar />
         <Box

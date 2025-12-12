@@ -114,6 +114,7 @@ export function HelperDashboardView(props: GenericDashboardViewProps): ReactElem
                   dashboardTitleComponent={
                     <ProjectBreadcrumbs
                       dashboardName={getResourceDisplayName(dashboardResource)}
+                      folder={dashboardResource.metadata.folder}
                       project={project}
                       variant={breadcrumbVariant}
                     />

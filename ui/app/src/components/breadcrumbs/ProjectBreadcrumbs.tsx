@@ -12,6 +12,7 @@
 // limitations under the License.
 
 import Archive from 'mdi-material-ui/Archive';
+import FolderIcon from 'mdi-material-ui/Folder';
 import ViewDashboardIcon from 'mdi-material-ui/ViewDashboard';
 import { ReactElement } from 'react';
 import { ProjectResource } from '@perses-dev/client';
@@ -20,12 +21,13 @@ import { BreadcrumbVariant, HomeLinkCrumb, Breadcrumbs, LinkCrumb, StackCrumb, T
 
 interface ProjectBreadcrumbsProps {
   project: ProjectResource;
+  folder?: string;
   dashboardName?: string;
   variant?: BreadcrumbVariant;
 }
 
 function ProjectBreadcrumbs(props: ProjectBreadcrumbsProps): ReactElement {
-  const { project, dashboardName, variant } = props;
+  const { project, folder, dashboardName, variant } = props;
 
   if (dashboardName) {
     return (
@@ -39,6 +41,12 @@ function ProjectBreadcrumbs(props: ProjectBreadcrumbsProps): ReactElement {
             </TitleCrumb>
           </StackCrumb>
         </LinkCrumb>
+        {folder && (
+          <StackCrumb variant={variant}>
+            <FolderIcon />
+            <TitleCrumb variant={variant}>{folder}</TitleCrumb>
+          </StackCrumb>
+        )}
         <StackCrumb variant={variant}>
           <ViewDashboardIcon />
           <TitleCrumb variant={variant}>{dashboardName}</TitleCrumb>

@@ -19,7 +19,7 @@ interface AppscodeProps extends ImgHTMLAttributes<HTMLImageElement> {
 }
 
 function AppscodeLogo(props: AppscodeProps): ReactElement {
-  const { title = 'Observe Logo', width = '146', height = '30', ...rest } = props;
+  const { title = 'Observe Logo', width = '118', height = '25', ...rest } = props;
   return <img src={appscodeLogo} alt={title} width={width} height={height} {...rest} />;
 }
 

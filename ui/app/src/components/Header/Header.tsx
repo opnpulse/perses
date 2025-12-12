@@ -47,7 +47,7 @@ export default function Header(): JSX.Element {
         sx={{
           backgroundColor: (theme) => theme.palette.designSystem.blue[700],
           '&': {
-            minHeight: '40px',
+            minHeight: '50px',
             paddingLeft: 0,
             paddingRight: 0.75,
           },
@@ -61,7 +61,7 @@ export default function Header(): JSX.Element {
             width: '100%',
             flexShrink: isMobileSize ? 2 : 1,
             pl: isLaptopSize ? 2 : 0,
-            gap: 2,
+            gap: 1,
           }}
         >
           <Button

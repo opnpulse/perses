@@ -17,13 +17,12 @@ function ObserveLabel(): ReactElement {
   return (
     <div
       style={{
-        fontSize: '15px',
-        padding: '2px 6px 4px 6px',
+        fontSize: '14px',
+        padding: '1px 4px 2px 4px',
         fontWeight: 600,
-        letterSpacing: '0.8px',
         color: '#fff',
-        border: '2px solid #ffffffcc',
-        borderRadius: '8px',
+        border: '2px solid #fff',
+        borderRadius: '5px',
       }}
     >
       Observe

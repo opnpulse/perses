@@ -12,7 +12,9 @@
 // limitations under the License.
 
 import { ReactElement, ImgHTMLAttributes } from 'react';
-import appscodeLogo from '../../../../assets/appscode.svg';
+
+const appscodeLogo =
+  'https://raw.githubusercontent.com/appscode/static-assets/master/images/products/appscode/appscode-green-white.svg';
 
 interface AppscodeProps extends ImgHTMLAttributes<HTMLImageElement> {
   title?: string;

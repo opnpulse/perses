@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "mathjs": "^10.6.4",
     "numbro": "^2.3.6",
     "zod": "^3.21.4"

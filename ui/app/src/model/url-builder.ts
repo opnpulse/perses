@@ -19,17 +19,27 @@ export type URLParams = {
   resource: string;
   name?: string;
   project?: string;
+  folder?: string;
   pathSuffix?: string[];
   queryParams?: URLSearchParams;
+  owner?: string;
   apiURL?: string;
 };
 
 export default function buildURL(params: URLParams): string {
   const basePath = PERSES_APP_CONFIG.api_prefix;
   let url = params.apiURL === undefined ? apiUrl : params.apiURL;
+
+  if (params.owner !== undefined && params.owner.length > 0) {
+    url = `${url}/owners/${encodeURIComponent(params.owner)}`;
+  }
   if (params.project !== undefined && params.project.length > 0) {
     url = `${url}/projects/${encodeURIComponent(params.project)}`;
   }
+  if (params.folder !== undefined && params.folder.length > 0) {
+    url = `${url}/folders/${encodeURIComponent(params.folder)}`;
+  }
+
   url = `${url}/${params.resource}`;
   if (params.name !== undefined && params.name.length > 0) {
     url = `${url}/${encodeURIComponent(params.name)}`;

@@ -20,9 +20,11 @@ import { useGlobalDatasourceList } from './global-datasource-client';
 export function buildProxyUrl({
   project,
   dashboard,
+  owner,
   name,
 }: {
   project?: string;
+  owner?: string | undefined;
   dashboard?: string;
   name: string;
 }): string {
@@ -34,12 +36,12 @@ export function buildProxyUrl({
   if (project) {
     url = `projects/${encodeURIComponent(project)}/${url}`;
   }
-  return `${basePath}/proxy/${url}`;
+  return `${basePath}/proxy/owners/${owner}/${url}`;
 }
 
-export function useDatasourceApi(): DatasourceApi {
+export function useDatasourceApi(project?: string): DatasourceApi {
   const { data: globalDatasources, isLoading: isGlobalDatasourcesPending } = useGlobalDatasourceList();
-  const { data: datasources, isLoading: isDatasourcesPending } = useDatasourceList({});
+  const { data: datasources, isLoading: isDatasourcesPending } = useDatasourceList({ project });
 
   const getDatasource = useCallback(
     async (project: string, selector: DatasourceSelector) => {

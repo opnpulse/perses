@@ -35,7 +35,7 @@ function HomeView(): ReactElement {
 
   const handleAddProjectDialogSubmit = (entity: ProjectResource): void => navigate(`/projects/${entity.metadata.name}`);
   const handleAddDashboardDialogSubmit = (dashboardSelector: DashboardSelector): void =>
-    navigate(`/projects/${dashboardSelector.project}/dashboard/new`, {
+    navigate(`/projects/${dashboardSelector.project}/folders/${dashboardSelector.folder}/dashboard/new`, {
       state: { name: dashboardSelector.dashboard, tags: dashboardSelector.tags },
     });
 

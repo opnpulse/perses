@@ -17,19 +17,21 @@ import { LinearProgress } from '@mui/material';
 import { useSnackbar } from '@perses-dev/components';
 import { ProjectResource } from '@perses-dev/client';
 import { getProject } from '../model/project-client';
+import { useActiveUser } from '../model/auth/auth-client';
 
 function GuardedProjectRoute(): ReactElement {
   const { projectName } = useParams();
   const navigate = useNavigate();
   const { exceptionSnackbar } = useSnackbar();
   const [projectPromise, setProjectPromise] = useState<Promise<ProjectResource>>();
+  const owner = useActiveUser();
 
   useEffect(() => {
     if (projectName === undefined || projectName === '') {
       return;
     }
     setProjectPromise(
-      getProject(projectName).catch((err) => {
+      getProject(owner, projectName).catch((err) => {
         exceptionSnackbar(err);
         navigate('/');
         throw err;

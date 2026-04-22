@@ -25,7 +25,7 @@ import { HelperDashboardView } from './HelperDashboardView';
  * The View for displaying an existing Dashboard.
  */
 function DashboardView(): ReactElement | null {
-  const { projectName, dashboardName } = useParams();
+  const { projectName, folderName, dashboardName } = useParams();
 
   if (projectName === undefined || dashboardName === undefined) {
     throw new Error('Unable to get the dashboard or project name');
@@ -33,7 +33,7 @@ function DashboardView(): ReactElement | null {
 
   const navigate = useNavigate();
   const { successSnackbar, exceptionSnackbar } = useSnackbar();
-  const { data, isLoading, error: dashboardNotFoundError } = useDashboard(projectName, dashboardName);
+  const { data, isLoading, error: dashboardNotFoundError } = useDashboard(projectName, folderName, dashboardName);
   const isReadonly = useIsReadonly();
   const updateDashboardMutation = useUpdateDashboardMutation();
 

@@ -13,27 +13,27 @@
 
 import { Link as RouterLink } from 'react-router-dom';
 import { AppBar, Box, Button, Divider, Toolbar } from '@mui/material';
-import Cog from 'mdi-material-ui/Cog';
-import ShieldStar from 'mdi-material-ui/ShieldStar';
-import Compass from 'mdi-material-ui/Compass';
-import React from 'react';
 import { useIsLaptopSize, useIsMobileSize } from '../../utils/browser-size';
 import { AdminRoute, ConfigRoute } from '../../model/route';
 import { useIsAuthEnabled, useIsExplorerEnabled } from '../../context/Config';
 import { GlobalProject, useHasPartialPermission } from '../../context/Authorization';
-import WhitePersesLogo from '../logo/WhitePersesLogo';
-import PersesLogoCropped from '../logo/PersesLogoCropped';
+import ObserveLabel from '../logo/ObserveLabel';
 import { BannerInfo } from '../BannerInfo';
 import { ToolMenu } from './ToolMenu';
 import { AccountMenu } from './AccountMenu';
 import { ThemeSwitch } from './ThemeSwitch';
 import { SearchBar } from './SearchBar/SearchBar';
+import BrandLogo from '../logo/BrandLogo';
+import { AppDrawer } from './AppDrawer';
+import { useCookies } from 'react-cookie';
+import { activeOrganization } from '../../constants/auth-token';
 
 export default function Header(): JSX.Element {
   const isLaptopSize = useIsLaptopSize();
   const isMobileSize = useIsMobileSize();
   const isAuthEnabled = useIsAuthEnabled();
   const IsExplorerEnabled = useIsExplorerEnabled();
+  const [cookies] = useCookies([activeOrganization]);
 
   const hasPartialPermission = useHasPartialPermission(['read'], GlobalProject, [
     'GlobalDatasource',
@@ -50,7 +50,7 @@ export default function Header(): JSX.Element {
         sx={{
           backgroundColor: (theme) => theme.palette.designSystem.blue[700],
           '&': {
-            minHeight: '40px',
+            minHeight: '50px',
             paddingLeft: 0,
             paddingRight: 0.75,
           },
@@ -63,6 +63,8 @@ export default function Header(): JSX.Element {
             alignItems: 'center',
             width: '100%',
             flexShrink: isMobileSize ? 2 : 1,
+            pl: isLaptopSize ? 2 : 0,
+            gap: 1,
           }}
         >
           <Button
@@ -70,55 +72,12 @@ export default function Header(): JSX.Element {
             to="/"
             sx={{
               padding: 0,
+              minWidth: 30,
             }}
           >
-            {isLaptopSize ? <WhitePersesLogo /> : <PersesLogoCropped color="white" width={32} height={32} />}
+            <BrandLogo height={30} width="auto" />
           </Button>
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ borderRightColor: 'rgba(255,255,255,0.2)', marginRight: 0.5 }}
-          />
-          {!isMobileSize ? (
-            <>
-              {hasPartialPermission && (
-                <Button
-                  aria-label="Administration"
-                  aria-controls="menu-admin-appbar"
-                  aria-haspopup="true"
-                  color="inherit"
-                  component={RouterLink}
-                  to={AdminRoute}
-                >
-                  <ShieldStar sx={{ marginRight: 0.5 }} /> Admin
-                </Button>
-              )}
-              <Button
-                aria-label="Config"
-                aria-controls="menu-config-appbar"
-                aria-haspopup="true"
-                color="inherit"
-                component={RouterLink}
-                to={ConfigRoute}
-              >
-                <Cog sx={{ marginRight: 0.5 }} /> Config
-              </Button>
-              {IsExplorerEnabled && (
-                <Button
-                  aria-label="Explore"
-                  aria-controls="menu-config-appbar"
-                  aria-haspopup="true"
-                  color="inherit"
-                  component={RouterLink}
-                  to="/explore"
-                >
-                  <Compass sx={{ marginRight: 0.5 }} /> Explore
-                </Button>
-              )}
-            </>
-          ) : (
-            <ToolMenu />
-          )}
+          {isLaptopSize && <ObserveLabel />}
         </Box>
         <SearchBar />
         <Box
@@ -127,8 +86,11 @@ export default function Header(): JSX.Element {
             flexShrink: isMobileSize ? 2 : 1,
             display: 'flex',
             justifyContent: 'end',
+            alignItems: 'center',
+            gap: 1,
           }}
         >
+          {isAuthEnabled && <AppDrawer activeOrganization={cookies[activeOrganization]} />}
           {isAuthEnabled ? <AccountMenu /> : <ThemeSwitch isAuthEnabled={false} />}
         </Box>
       </Toolbar>

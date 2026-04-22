@@ -13,16 +13,18 @@
 
 import { Box } from '@mui/material';
 import { Outlet, useLocation } from 'react-router-dom';
-import { ReactElement, Suspense } from 'react';
+import { ReactElement, Suspense, useEffect } from 'react';
 import { ReactRouterProvider } from '@perses-dev/plugin-system';
+import { BooleanParam, JsonParam, useQueryParam } from 'use-query-params';
 import Header from './components/Header/Header';
 import Footer from './components/Footer';
 import { GlobalShortcuts } from './components/GlobalShortcuts';
 import { ShortcutHelpModal } from './components/ShortcutHelpModal';
-import { DelegatedAuthnErrorRoute, SignInRoute, SignUpRoute } from './model/route';
+import { PlatformLoginRoute, SignUpRoute } from './model/route';
 import { PersesLoader } from './components/PersesLoader';
 import { useIsKeyboardShortcutsEnabled } from './context/Config';
 import './i18n/i18n';
+import { useBranding } from './model/branding-client';
 
 function isDashboardViewRoute(pathname: string): boolean {
   return /\/projects\/[a-zA-Z0-9_]+\/dashboards\/[a-zA-Z0-9_]+/.test(pathname);
@@ -31,6 +33,30 @@ function isDashboardViewRoute(pathname: string): boolean {
 function App(): ReactElement {
   const location = useLocation();
   const isKeyboardShortcutsEnabled = useIsKeyboardShortcutsEnabled();
+  const { data: branding } = useBranding();
+  const [detailedView] = useQueryParam('detailedView', BooleanParam);
+  const isDetailedView = detailedView === true;
+
+  const [selectedPanels] = useQueryParam('selectedPanels', JsonParam);
+  const [panelSelectMode] = useQueryParam('panelSelectMode', BooleanParam);
+  const isViewingSelected = Array.isArray(selectedPanels) && selectedPanels.length > 0 && panelSelectMode !== true;
+
+  const hideChrome = isDetailedView || isViewingSelected;
+
+  useEffect(() => {
+    if (branding?.favicons?.favicon96x96) {
+      const favicon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (favicon) {
+        favicon.href = branding.favicons?.favicon96x96;
+      }
+    }
+  }, [branding]);
+
+  // Hide header in detailed view / selected panels view, or on login/signup pages
+  const shouldShowHeader = !hideChrome && location.pathname !== PlatformLoginRoute && location.pathname !== SignUpRoute;
+
+  // Hide footer in detailed view / selected panels view, or on dashboard view routes
+  const shouldShowFooter = !hideChrome && !isDashboardViewRoute(location.pathname);
 
   return (
     <Box
@@ -47,9 +73,7 @@ function App(): ReactElement {
           <ShortcutHelpModal />
         </>
       )}
-      {location.pathname !== SignInRoute &&
-        location.pathname !== SignUpRoute &&
-        location.pathname !== DelegatedAuthnErrorRoute && <Header />}
+      {shouldShowHeader && <Header />}
 
       <Box
         sx={{
@@ -66,7 +90,7 @@ function App(): ReactElement {
           </Suspense>
         </ReactRouterProvider>
       </Box>
-      {!isDashboardViewRoute(location.pathname) && <Footer />}
+      {shouldShowFooter && <Footer />}
     </Box>
   );
 }

@@ -11,22 +11,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { MouseEvent, ReactElement, useState } from 'react';
-import { Divider, IconButton, ListItemIcon, Menu, MenuItem } from '@mui/material';
+import { MouseEvent, ReactElement, useMemo, useState } from 'react';
+import {
+  Divider,
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Collapse,
+  List,
+  ListItemButton,
+  ListItemText,
+  Box,
+} from '@mui/material';
 import AccountCircle from 'mdi-material-ui/AccountCircle';
 import AccountBox from 'mdi-material-ui/AccountBox';
 import Logout from 'mdi-material-ui/Logout';
-import { Link as RouterLink } from 'react-router-dom';
-import { useUsername } from '../../model/auth/auth-client';
-import { ProfileRoute } from '../../model/route';
-import { useIsDelegatedAuthnProviderEnabled } from '../../context/Config';
+import ExpandLess from 'mdi-material-ui/ChevronUp';
+import ExpandMore from 'mdi-material-ui/ChevronDown';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { useCookies } from 'react-cookie';
+import { useActiveUser, useOrganizationList, useUserApi } from '../../model/auth/auth-client';
+import { LoginUrl, LogoutUrl, ProfileRoute } from '../../model/route';
+import { HTTPHeader, HTTPMethodGET } from '../../model/http';
 import { PERSES_APP_CONFIG } from '../../config';
 import { ThemeSwitch } from './ThemeSwitch';
+import { activeOrganization } from '../../constants/auth-token';
+import { Typography } from '@mui/material';
+import CheckIcon from 'mdi-material-ui/Check';
 
 export function AccountMenu(): ReactElement {
-  const username = useUsername();
-  const isDelegatedAuthnProviderEnabled = useIsDelegatedAuthnProviderEnabled();
+  const owner = useActiveUser();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [openSwitch, setOpenSwitch] = useState(false);
+  const [cookies, setCookie] = useCookies([activeOrganization]);
+  const { data: user } = useUserApi();
+  const { data: orgs } = useOrganizationList(user?.metadata?.name);
+
+  const basePath = PERSES_APP_CONFIG.api_prefix;
+
+  const accounts = useMemo(() => {
+    if (!user && !orgs) return [];
+
+    const userAccount = user
+      ? [
+          {
+            ...user,
+            user_type: 'user',
+          },
+        ]
+      : [];
+
+    const orgAccounts =
+      orgs?.map((org: any) => ({
+        ...org,
+        user_type: 'org',
+      })) ?? [];
+
+    return [...userAccount, ...orgAccounts];
+  }, [user, orgs]);
 
   const handleMenu = (event: MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
@@ -34,6 +79,31 @@ export function AccountMenu(): ReactElement {
   const handleCloseMenu = (): void => {
     setAnchorEl(null);
   };
+  const handleToggleSwitch = (): void => {
+    setOpenSwitch(!openSwitch);
+  };
+  const handleSwitchAccount = (accountId: string): void => {
+    setCookie(activeOrganization, accountId, { path: '/' });
+    setAnchorEl(null);
+    if (pathname !== basePath) {
+      navigate('/');
+    }
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    await fetch(LogoutUrl, {
+      method: HTTPMethodGET,
+      headers: HTTPHeader,
+    });
+    window.location.href = LoginUrl;
+  };
+
+  const currentAccount = accounts.find((acc) => acc.metadata?.name === owner);
+
+  const getAccountTypeLabel = (userType: string) => {
+    return userType === 'user' ? 'Personal Account' : 'Organization';
+  };
+
   return (
     <>
       <IconButton
@@ -60,8 +130,44 @@ export function AccountMenu(): ReactElement {
           <ListItemIcon>
             <AccountCircle />
           </ListItemIcon>
-          {username}
+          <Box display="flex" flexDirection="column">
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {owner}
+            </Typography>
+            {currentAccount && (
+              <Typography variant="body2" color="text.secondary">
+                {getAccountTypeLabel(currentAccount.user_type)}
+              </Typography>
+            )}
+          </Box>
         </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleToggleSwitch}>
+          <ListItemIcon>
+            <AccountBox />
+          </ListItemIcon>
+          Switch Account
+          {openSwitch ? <ExpandLess /> : <ExpandMore />}
+        </MenuItem>
+
+        <Collapse in={openSwitch} timeout="auto" unmountOnExit>
+          <List disablePadding>
+            {accounts.map((acc) => (
+              <ListItemButton
+                key={acc.metadata?.name}
+                selected={owner === acc.metadata?.name}
+                onClick={() => handleSwitchAccount(acc.metadata?.name)}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <AccountCircle />
+                </ListItemIcon>
+                <ListItemText primary={acc.metadata?.name} secondary={getAccountTypeLabel(acc.user_type)} />
+                {owner === acc.metadata?.name && <CheckIcon color="primary" />}
+              </ListItemButton>
+            ))}
+          </List>
+        </Collapse>
+
         <Divider />
         <ThemeSwitch isAuthEnabled />
         <MenuItem component={RouterLink} to={ProfileRoute}>
@@ -70,16 +176,12 @@ export function AccountMenu(): ReactElement {
           </ListItemIcon>
           Profile
         </MenuItem>
-        {/* Since perses doesn't have control over delegated authn providers, don't show the
-          logout button when one is enabled */}
-        {!isDelegatedAuthnProviderEnabled && (
-          <MenuItem component="a" href={`${PERSES_APP_CONFIG.api_prefix}/api/auth/logout`}>
-            <ListItemIcon>
-              <Logout />
-            </ListItemIcon>
-            Logout
-          </MenuItem>
-        )}
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <Logout />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
       </Menu>
     </>
   );

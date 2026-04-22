@@ -42,10 +42,7 @@ import {
 import * as React from 'react';
 import Gitlab from 'mdi-material-ui/Gitlab';
 import Bitbucket from 'mdi-material-ui/Bitbucket';
-import { useDarkMode } from '../../context/DarkMode';
-import PersesLogoCropped from '../../components/logo/PersesLogoCropped';
-import DarkThemePersesLogo from '../../components/logo/DarkThemePersesLogo';
-import LightThemePersesLogo from '../../components/logo/LightThemePersesLogo';
+import BrandLogo from '../../components/logo/BrandLogo';
 import { useIsLaptopSize } from '../../utils/browser-size';
 import { useConfigContext, useIsNativeAuthnProviderEnabled } from '../../context/Config';
 import { buildRedirectQueryString, useRedirectQueryParam } from '../../model/auth/auth-client';
@@ -120,26 +117,7 @@ function computeSocialButtonFromURL(theme: Theme, url: string) {
   return SOCIAL_BUTTONS_MAPPING[''](theme);
 }
 
-export function PersesLogo({
-  isLaptopSize,
-  isDarkModeEnabled,
-}: {
-  isLaptopSize: boolean;
-  isDarkModeEnabled: boolean;
-}): ReactElement {
-  if (!isLaptopSize) {
-    return <PersesLogoCropped />;
-  }
-
-  if (isDarkModeEnabled) {
-    return <DarkThemePersesLogo />;
-  }
-
-  return <LightThemePersesLogo />;
-}
-
 export function SignWrapper(props: { children: ReactNode }): ReactElement {
-  const { isDarkModeEnabled } = useDarkMode();
   const isLaptopSize = useIsLaptopSize();
   const config = useConfigContext();
   const theme = useTheme();
@@ -165,7 +143,7 @@ export function SignWrapper(props: { children: ReactNode }): ReactElement {
       justifyContent="center"
       gap={2}
     >
-      <PersesLogo isLaptopSize={isLaptopSize} isDarkModeEnabled={isDarkModeEnabled} />
+      <BrandLogo />
       <Divider
         orientation={isLaptopSize ? 'vertical' : 'horizontal'}
         variant="middle"

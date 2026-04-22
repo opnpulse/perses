@@ -28,6 +28,7 @@ import { resource as variableResource } from './variable-client';
 import { resource as datasourceResource } from './datasource-client';
 import buildQueryKey from './querykey-builder';
 import { userKey } from './user-client';
+import { useActiveUser } from './auth/auth-client';
 
 const resource = 'projects';
 
@@ -43,8 +44,8 @@ export interface ProjectWithDashboards {
   dashboards: DashboardResource[];
 }
 
-function createProject(entity: ProjectResource): Promise<ProjectResource> {
-  const url = buildURL({ resource });
+function createProject(owner: string | undefined, entity: ProjectResource): Promise<ProjectResource> {
+  const url = buildURL({ resource, owner });
   return fetchJson<ProjectResource>(url, {
     method: HTTPMethodPOST,
     headers: HTTPHeader,
@@ -52,25 +53,25 @@ function createProject(entity: ProjectResource): Promise<ProjectResource> {
   });
 }
 
-export function getProject(name: string): Promise<ProjectResource> {
-  const url = buildURL({ resource, name });
+export function getProject(owner: string | undefined, name: string): Promise<ProjectResource> {
+  const url = buildURL({ resource, name, owner });
   return fetchJson<ProjectResource>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
 
-export function getProjects(): Promise<ProjectResource[]> {
-  const url = buildURL({ resource });
+export function getProjects(owner: string | undefined): Promise<ProjectResource[]> {
+  const url = buildURL({ resource, owner });
   return fetchJson<ProjectResource[]>(url, {
     method: HTTPMethodGET,
     headers: HTTPHeader,
   });
 }
 
-function updateProject(entity: ProjectResource): Promise<ProjectResource> {
+function updateProject(owner: string | undefined, entity: ProjectResource): Promise<ProjectResource> {
   const name = entity.metadata.name;
-  const url = buildURL({ resource, name });
+  const url = buildURL({ owner, resource, name });
   return fetchJson<ProjectResource>(url, {
     method: HTTPMethodPUT,
     headers: HTTPHeader,
@@ -78,9 +79,9 @@ function updateProject(entity: ProjectResource): Promise<ProjectResource> {
   });
 }
 
-function deleteProject(entity: ProjectResource): Promise<Response> {
+function deleteProject(owner: string | undefined, entity: ProjectResource): Promise<Response> {
   const name = entity.metadata.name;
-  const url = buildURL({ resource, name });
+  const url = buildURL({ owner, resource, name });
   return fetch(url, {
     method: HTTPMethodDELETE,
     headers: HTTPHeader,
@@ -92,11 +93,14 @@ function deleteProject(entity: ProjectResource): Promise<Response> {
  * Will automatically be refreshed when cache is invalidated
  */
 export function useProject(name: string): UseQueryResult<ProjectResource, StatusError> {
+  const owner = useActiveUser();
+
   return useQuery<ProjectResource, StatusError>({
     queryKey: [resource, name],
     queryFn: () => {
-      return getProject(name);
+      return getProject(owner, name);
     },
+    enabled: !!owner,
   });
 }
 
@@ -106,12 +110,11 @@ export function useProject(name: string): UseQueryResult<ProjectResource, Status
  */
 export function useProjectList(options?: ProjectListOptions): UseQueryResult<ProjectResource[], StatusError> {
   const queryKey = buildQueryKey({ resource });
+  const owner = useActiveUser();
 
   return useQuery<ProjectResource[], StatusError>({
-    queryKey: queryKey,
-    queryFn: () => {
-      return getProjects();
-    },
+    queryKey,
+    queryFn: () => getProjects(owner),
     ...options,
   });
 }
@@ -123,11 +126,12 @@ export function useProjectList(options?: ProjectListOptions): UseQueryResult<Pro
 export function useCreateProjectMutation(): UseMutationResult<ProjectResource, StatusError, ProjectResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource });
+  const owner = useActiveUser();
 
   return useMutation<ProjectResource, StatusError, ProjectResource>({
     mutationKey: queryKey,
     mutationFn: (project: ProjectResource) => {
-      return createProject(project);
+      return createProject(owner, project);
     },
     onSuccess: () => {
       return Promise.all([
@@ -145,10 +149,12 @@ export function useCreateProjectMutation(): UseMutationResult<ProjectResource, S
 export function useUpdateProjectMutation(): UseMutationResult<ProjectResource, StatusError, ProjectResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource });
+  const owner = useActiveUser();
+
   return useMutation<ProjectResource, StatusError, ProjectResource>({
     mutationKey: queryKey,
     mutationFn: (project: ProjectResource) => {
-      return updateProject(project);
+      return updateProject(owner, project);
     },
     onSuccess: (entity: ProjectResource) => {
       return Promise.all([
@@ -172,11 +178,12 @@ export function useUpdateProjectMutation(): UseMutationResult<ProjectResource, S
 export function useDeleteProjectMutation(): UseMutationResult<ProjectResource, StatusError, ProjectResource> {
   const queryClient = useQueryClient();
   const queryKey = buildQueryKey({ resource });
+  const owner = useActiveUser();
 
   return useMutation<ProjectResource, StatusError, ProjectResource>({
     mutationKey: queryKey,
     mutationFn: async (entity: ProjectResource) => {
-      await deleteProject(entity);
+      await deleteProject(owner, entity);
       return entity;
     },
     onSuccess: (entity: ProjectResource) => {
@@ -218,6 +225,7 @@ function mergeQueryResults(first: UseQueryResult, ...others: UseQueryResult[]): 
 }
 
 export function useProjectsWithDashboards(): UseQueryResult<ProjectWithDashboards[], StatusError> {
+  const owner = useActiveUser();
   const projectsQueryResult = useProjectList();
   const dashboardsQueryResult = useDashboardList({ project: undefined, metadataOnly: true });
 

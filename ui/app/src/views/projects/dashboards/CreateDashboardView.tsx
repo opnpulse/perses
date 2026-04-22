@@ -31,7 +31,7 @@ export interface CreateDashboardState {
  * The View for creating a new Dashboard.
  */
 function CreateDashboardView(): ReactElement | null {
-  const { projectName } = useParams();
+  const { projectName, folderName } = useParams();
   const location = useLocation();
   const state: CreateDashboardState = location.state;
   const dashboardName = state.name;
@@ -49,6 +49,7 @@ function CreateDashboardView(): ReactElement | null {
     metadata: {
       name: generateMetadataName(dashboardName),
       project: projectName,
+      folder: folderName,
       version: 0,
       tags: state.tags ?? [],
     },
@@ -78,7 +79,10 @@ function CreateDashboardView(): ReactElement | null {
           successSnackbar(
             `Dashboard ${getResourceExtendedDisplayName(createdDashboard)} has been successfully created`
           );
-          navigate(`/projects/${createdDashboard.metadata.project}/dashboards/${createdDashboard.metadata.name}`);
+          navigate(
+            `/projects/${createdDashboard.metadata.project}/folders/${folderName}/dashboards/${createdDashboard.metadata.name}`
+          );
+          return createdDashboard;
         },
         onError: (err) => {
           setIsLeavingConfirmDialogEnabled(true); // Re-enable the leaving dialog if there was an error

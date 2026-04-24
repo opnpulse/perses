@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	DefaultDockerRegistry  = "docker.io/persesdev"
+	DefaultDockerRegistry  = "ghcr.io/opnpulse"
 	DefaultDebugDockerfile = "distroless-debug.Dockerfile"
 	DefaultDebugSuffix     = "-debug"
 	DefaultMainBranch      = "main"

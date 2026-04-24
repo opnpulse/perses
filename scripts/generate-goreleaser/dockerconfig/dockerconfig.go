@@ -28,7 +28,7 @@ func PersesDockerConfig(cfg TestConfig) *goreleaser.DockerConfig {
 		ImageName:  "perses",
 		DebugImage: true,
 		BinaryIDs:  []string{"perses", "percli"},
-		Registry:   []string{"docker.io/persesdev", "quay.io/persesdev"},
+		Registry:   []string{"ghcr.io/opnpulse"},
 		ExtraFiles: []string{"LICENSE", "docs/examples/config.docker.yaml", "plugins-archive"},
 		Branch:     cfg.Branch,
 		Commit:     cfg.Commit,

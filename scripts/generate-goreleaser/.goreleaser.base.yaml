@@ -61,7 +61,7 @@ sboms:
       - "${artifact}.sbom.spdx.json"
 release:
   github:
-    owner: "perses"
+    owner: "opnpulse"
     name: "perses"
   ids:
     - "default"

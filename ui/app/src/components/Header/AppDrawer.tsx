@@ -15,7 +15,6 @@ import { ReactElement, useMemo, useState, MouseEvent } from 'react';
 import { IconButton, Menu, MenuItem, Box, Typography, Avatar, ListItemText, ListItemIcon } from '@mui/material';
 import ViewGrid from 'mdi-material-ui/ViewGrid';
 import { useCookies } from 'react-cookie';
-import observeIcon from '../../assets/icons/observe-icon.svg';
 
 export interface AppDrawerProps {
   currentApp?: string;
@@ -49,9 +48,9 @@ const DEFAULT_APPS = [
   },
   {
     name: 'observe',
-    icon_url: observeIcon,
+    icon_url: 'https://cdn.appscode.com/images/products/observe/logos/observe.svg',
     title: 'Observe',
-    port: '5992',
+    port: '8080',
     sub_title: 'Observe your activities',
   },
   {
@@ -175,13 +174,25 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
         }}
         PaperProps={{
           sx: {
-            width: 320,
-            maxHeight: 500,
+            width: 258,
             mt: 1.5,
+            overflow: 'visible',
+            '&::after': {
+              content: '""',
+              display: 'block',
+              position: 'absolute',
+              top: 0,
+              right: 14,
+              width: 15,
+              height: 15,
+              bgcolor: 'rgb(255,255,255)',
+              transform: 'translateY(-50%) rotate(45deg)',
+              zIndex: 0,
+            },
           },
         }}
       >
-        <Box sx={{ p: 1 }}>
+        <Box>
           {filteredAppList.map((app) => (
             <MenuItem
               key={app.name}
@@ -190,12 +201,16 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
               onClick={() => handleClick(app.name)}
               sx={{
                 py: 1.5,
-                borderRadius: 1,
-                mb: 0.5,
-                '&:last-child': { mb: 0 },
+                px: 3,
+                borderBottom: '1px solid #e2e8f0',
+                '&:last-child': {
+                  borderBottom: 0,
+                },
+                alignItems: 'flex-start',
+                whiteSpace: 'normal',
               }}
             >
-              <ListItemIcon sx={{ minWidth: 48 }}>
+              <ListItemIcon sx={{ minWidth: 0, mr: '10px' }}>
                 <Avatar
                   src={app.icon_url}
                   variant="square"
@@ -205,7 +220,7 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
               <ListItemText
                 primary={<Typography sx={{ fontWeight: 600 }}>{app.title}</Typography>}
                 secondary={
-                  <Typography variant="body2" color="text.secondary" noWrap>
+                  <Typography variant="body2" color="text.secondary" sx={{ display: 'block', wordBreak: 'break-word', whiteSpace: 'normal' }}>
                     {app.sub_title}
                   </Typography>
                 }

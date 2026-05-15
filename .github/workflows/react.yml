@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v6
-      - uses: perses/github-actions@v0.11.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: perses/github-actions@46131ce1b8557dd8c4dc5af854b5abbad36679df # v0.11.0
       - uses: ./.github/perses-ci/actions/setup_environment
         with:
           enable_npm: true
@@ -34,8 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v6
-      - uses: perses/github-actions@v0.11.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: perses/github-actions@46131ce1b8557dd8c4dc5af854b5abbad36679df # v0.11.0
       - uses: ./.github/perses-ci/actions/setup_environment
         with:
           enable_npm: true
@@ -48,8 +48,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v6
-      - uses: perses/github-actions@v0.11.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: perses/github-actions@46131ce1b8557dd8c4dc5af854b5abbad36679df # v0.11.0
       - uses: ./.github/perses-ci/actions/setup_environment
         with:
           enable_npm: true

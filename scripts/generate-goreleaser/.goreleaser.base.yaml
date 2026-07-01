@@ -66,6 +66,7 @@ release:
   ids:
     - "default"
   prerelease: auto
+  replace_existing_artifacts: true
   name_template: "{{ .Version }} / {{ .Env.DATE }}"
   extra_files:
     - glob: "ui-sbom.cdx.json"

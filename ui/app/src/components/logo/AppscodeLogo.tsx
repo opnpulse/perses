@@ -12,17 +12,16 @@
 // limitations under the License.
 
 import { ReactElement, ImgHTMLAttributes } from 'react';
-
-const appscodeLogo =
-  'https://raw.githubusercontent.com/appscode/static-assets/master/images/products/appscode/appscode-green-white.svg';
+import { useBranding } from '../../model/branding-client';
 
 interface AppscodeProps extends ImgHTMLAttributes<HTMLImageElement> {
   title?: string;
 }
 
 function AppscodeLogo(props: AppscodeProps): ReactElement {
-  const { title = 'Observe Logo', width = '118', height = '25', ...rest } = props;
-  return <img src={appscodeLogo} alt={title} width={width} height={height} {...rest} />;
+  const { title = 'Brand Logo', width = '118', height = '25', ...rest } = props;
+  const { data: branding } = useBranding();
+  return <img src={branding?.logo} alt={title} width={width} height={height} {...rest} />;
 }
 
 export default AppscodeLogo;

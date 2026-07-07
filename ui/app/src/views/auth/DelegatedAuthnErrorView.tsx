@@ -17,15 +17,13 @@ import { ReactElement, useEffect } from 'react';
 import { ErrorAlert, useSnackbar } from '@perses-dev/components';
 import { useNavigate } from 'react-router-dom';
 import { useRedirectQueryParam } from '../../model/auth/auth-client';
-import { useDarkMode } from '../../context/DarkMode';
 import { useIsLaptopSize } from '../../utils/browser-size';
 import { useCurrentUser } from '../../model/user-client';
-import { PersesLogo } from './SignWrapper';
+import BrandLogo from '../../components/logo/BrandLogo';
 
 function DelegatedAuthnErrorView(): ReactElement {
   const authnCheck = useCurrentUser();
   const navigate = useNavigate();
-  const { isDarkModeEnabled } = useDarkMode();
   const { successSnackbar, exceptionSnackbar } = useSnackbar();
   const redirectPath = useRedirectQueryParam();
 
@@ -46,7 +44,7 @@ function DelegatedAuthnErrorView(): ReactElement {
       justifyContent="center"
       gap={2}
     >
-      <PersesLogo isLaptopSize={isLaptopSize} isDarkModeEnabled={isDarkModeEnabled} />
+      <BrandLogo />
       <Divider
         orientation={isLaptopSize ? 'vertical' : 'horizontal'}
         variant="middle"

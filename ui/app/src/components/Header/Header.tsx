@@ -23,7 +23,7 @@ import { ToolMenu } from './ToolMenu';
 import { AccountMenu } from './AccountMenu';
 import { ThemeSwitch } from './ThemeSwitch';
 import { SearchBar } from './SearchBar/SearchBar';
-import AppscodeLogo from '../logo/AppscodeLogo';
+import BrandLogo from '../logo/BrandLogo';
 import { AppDrawer } from './AppDrawer';
 import { useCookies } from 'react-cookie';
 import { activeOrganization } from '../../constants/auth-token';
@@ -75,7 +75,7 @@ export default function Header(): JSX.Element {
               minWidth: 30,
             }}
           >
-            <AppscodeLogo height={30} width="auto" />
+            <BrandLogo height={30} width="auto" />
           </Button>
           {isLaptopSize && <ObserveLabel />}
         </Box>

@@ -42,7 +42,7 @@ import {
 import * as React from 'react';
 import Gitlab from 'mdi-material-ui/Gitlab';
 import Bitbucket from 'mdi-material-ui/Bitbucket';
-import AppscodeLogo from '../../components/logo/AppscodeLogo';
+import BrandLogo from '../../components/logo/BrandLogo';
 import { useIsLaptopSize } from '../../utils/browser-size';
 import { useConfigContext, useIsNativeAuthnProviderEnabled } from '../../context/Config';
 import { buildRedirectQueryString, useRedirectQueryParam } from '../../model/auth/auth-client';
@@ -143,7 +143,7 @@ export function SignWrapper(props: { children: ReactNode }): ReactElement {
       justifyContent="center"
       gap={2}
     >
-      <AppscodeLogo />
+      <BrandLogo />
       <Divider
         orientation={isLaptopSize ? 'vertical' : 'horizontal'}
         variant="middle"

@@ -14,7 +14,6 @@
 package health
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -43,12 +42,7 @@ func (e *endpoint) CollectRoutes(g *route.Group) {
 
 // Check is the endpoint that provides the health status of the API.
 func (e *endpoint) Check(ctx echo.Context) error {
-	fmt.Println("*********************************")
 	healthData := e.service.HealthCheck()
-	fmt.Printf("-------------------------------")
-	fmt.Println(healthData)
-	fmt.Printf("-------------------------------")
-
 	if !healthData.Database {
 		return ctx.JSON(http.StatusServiceUnavailable, healthData)
 	}

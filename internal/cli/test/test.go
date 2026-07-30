@@ -15,7 +15,6 @@ package test
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -67,7 +66,6 @@ func ExecuteSuiteTest(t *testing.T, newCMD func() *cobra.Command, suites []Suite
 				if len(test.ExpectedRegexMessage) > 0 {
 					matched, _ := regexp.MatchString(test.ExpectedRegexMessage, buffer.String())
 					assert.True(t, matched, "Expected output to match regex: %s", test.ExpectedRegexMessage)
-					fmt.Println("output message: ", buffer.String())
 				} else {
 					assert.Equal(t, test.ExpectedMessage, buffer.String())
 				}

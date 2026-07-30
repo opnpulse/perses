@@ -100,15 +100,12 @@ func CheckProject(svc project.Service) echo.MiddlewareFunc {
 }
 
 func getUserName(ctx echo.Context) (string, error) {
-	fmt.Printf("--------------getUserName------------")
 	token, ok := ctx.Get("user").(*jwt.Token)
-	fmt.Printf("token: %+v\n", token)
 	if !ok {
 		return "", apiInterface.UnauthorizedError
 	}
 
 	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	fmt.Printf("claims: %+v\n", claims)
 	if !ok {
 		return "", apiInterface.UnauthorizedError
 	}

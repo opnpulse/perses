@@ -56,7 +56,6 @@ func (o *option) Validate() error {
 func (o *option) Execute() error {
 	if len(o.projectName) == 0 {
 		// In that case, we simply print the current project used.
-		fmt.Printf("Using project %q on server %q\n", config.Global.Project, config.Global.RestClientConfig.URL)
 		return nil
 	}
 	// in case the project is provided, we should verify if it exists first

@@ -96,7 +96,7 @@ func (d *DAO) generateInsertQuery(entity modelAPI.Entity) (string, []interface{}
 			return "", nil, err
 		}
 	}
-	fmt.Printf("projectID: %d\n", projectID)
+
 	switch entity.GetKind() {
 	case string(modelV1.KindUser):
 		userType := entity.GetMetadata().GetUserType()
@@ -262,7 +262,6 @@ func (d *DAO) generateSelectQueryWithUserID(tableName string, project string, na
 		if u != 0 {
 			metadata.UserID = u
 		}
-		fmt.Printf("generateSelectQueryWithUserID metadata: %+v\n", metadata)
 		projectID, rows, err := d.get(modelV1.KindProject, metadata)
 		defer rows.Close()
 		if err != nil {
@@ -278,8 +277,6 @@ func (d *DAO) generateSelectQueryWithUserID(tableName string, project string, na
 		queryBuilder.Where(queryBuilder.Equal(colProjectID, projectID))
 	}
 
-	sql, _ := queryBuilder.Build()
-	fmt.Printf("sql: %s\n", sql)
 	return queryBuilder.Build()
 }
 
@@ -355,7 +352,6 @@ func (d *DAO) generateSelectQueryWithUserIDForDashboards(project string, name st
 	}
 
 	sql, args := queryBuilder.Build()
-	fmt.Printf("sql: %s args: %v\n", sql, args)
 	return sql, args
 }
 
@@ -388,7 +384,6 @@ func (d *DAO) generateSelectAllOrgsOfAUserQuery(name string) (string, []any) {
 		Where(queryBuilder.Equal(orgAlias+"."+colType, "org"))
 
 	query, args := queryBuilder.Build()
-	fmt.Printf("query: %s\n", query)
 	return query, args
 }
 

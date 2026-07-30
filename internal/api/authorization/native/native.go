@@ -154,7 +154,7 @@ func (n *native) GetUsername(ctx echo.Context) (string, error) {
 	return usr.(*v1.User).Metadata.Name, nil
 }
 
-// Middleware2 attaches AceUser into echo.Context and rejects if not authenticated
+// Middleware attaches AceUser into echo.Context and rejects if not authenticated
 func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -162,24 +162,32 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 				return next(c)
 			}
 
+			req := c.Request()
+			fmt.Printf("Middleware: %s %s from %s, cookie: %v\n", req.Method, req.URL.Path, c.RealIP(), req.Header.Get("Cookie"))
+
 			var persesUser *v1.User
-			user, err := loginWithAceCookie(c.Request())
-			if err != nil || user == nil {
+			aceUser, err := loginWithAceCookie(req)
+			if err != nil || aceUser == nil {
+				fmt.Printf("Middleware: ace cookie login failed (%v), falling back to access token\n", err)
 				persesUser, err = loginWithAccessToken(c, n.accessTokenDAO, n.userDAO)
 				if err != nil {
+					fmt.Printf("Middleware: access token login failed: %v\n", err)
 					return c.JSON(http.StatusUnauthorized, map[string]string{
 						"error": "unauthorized",
 					})
 				}
+				fmt.Printf("Middleware: authenticated %q via access token\n", persesUser.Metadata.Name)
 				c.Set("perses-user", persesUser)
 
 			} else {
-				persesUser, err = n.userDAO.Get(user.UserName)
+				persesUser, err = n.userDAO.Get(aceUser.UserName)
 				if err != nil {
+					fmt.Printf("Middleware: ace user %q not found locally: %v\n", aceUser.UserName, err)
 					return c.JSON(http.StatusUnauthorized, map[string]string{
 						"error": "unauthorized",
 					})
 				}
+				fmt.Printf("Middleware: authenticated %q via ace cookie\n", persesUser.Metadata.Name)
 				c.Set("perses-user", persesUser)
 			}
 
@@ -187,16 +195,19 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 				orgName := strings.TrimPrefix(persesUser.Metadata.Name, v1.OrgSystemUserPrefix)
 				persesOrg, err := n.userDAO.Get(orgName)
 				if err != nil {
+					fmt.Printf("Middleware: failed to resolve org %q for org system user %q: %v\n", orgName, persesUser.Metadata.Name, err)
 					return c.JSON(http.StatusBadRequest, map[string]string{
 						"error": err.Error(),
 					})
 				}
+				fmt.Printf("Middleware: resolved org %q for org system user %q\n", orgName, persesUser.Metadata.Name)
 				c.Set("perses-org", persesOrg)
 			}
 
-			if c.Param("owner") != "" {
-				owner, err := n.userDAO.Get(c.Param("owner"))
+			if ownerParam := c.Param("owner"); ownerParam != "" {
+				owner, err := n.userDAO.Get(ownerParam)
 				if err != nil {
+					fmt.Printf("Middleware: failed to resolve owner %q from request path: %v\n", ownerParam, err)
 					return c.JSON(http.StatusBadRequest, map[string]string{
 						"error": err.Error(),
 					})
@@ -207,6 +218,7 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 					found := false
 					orgs, err := n.userDAO.GetAllOrganizationsOfAnUser(persesUser.Metadata.Name)
 					if err != nil {
+						fmt.Printf("Middleware: failed to list organizations for user %q: %v\n", persesUser.Metadata.Name, err)
 						return c.JSON(http.StatusBadRequest, map[string]string{
 							"error": err.Error(),
 						})
@@ -218,11 +230,13 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 						}
 					}
 					if !found {
+						fmt.Printf("Middleware: user %q is not a member of owner %q, rejecting request\n", persesUser.Metadata.Name, owner.Metadata.Name)
 						return c.JSON(http.StatusUnauthorized, map[string]string{
 							"error": "unauthorized",
 						})
 					}
 				}
+				fmt.Printf("Middleware: owner resolved to %q\n", owner.Metadata.Name)
 				c.Set("owner", owner)
 			}
 
@@ -298,6 +312,7 @@ func loginWithAceCookie(req *http.Request) (*AceUser, error) {
 		return nil, err
 	}
 
+	fmt.Printf("loginWithAceCookie, user: %+v\n", user)
 	return &user, nil
 }
 
@@ -493,14 +508,12 @@ func loginWithAccessToken(ctx echo.Context, accessTokenDAO accesstoken.DAO, user
 			return nil, err
 		}
 
-		fmt.Printf("loginWithAccessToken: %+v\n", t)
-
 		user, err := userDAO.GetByID(t.UID)
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Printf("user: %+v\n", user)
+		fmt.Printf("loginWithAccessToken, user: %+v\n", user)
 
 		return user, nil
 	}

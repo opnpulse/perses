@@ -838,7 +838,6 @@ func (d *DAO) DeleteByQuery(query databaseModel.Query) error {
 }
 
 func (d *DAO) HealthCheck() bool {
-	fmt.Printf("&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
 	if err := d.DB.Ping(); err != nil {
 		logrus.WithError(err).Error("unable to ping the database")
 		return false
@@ -928,7 +927,6 @@ func (d *DAO) get(kind modelV1.Kind, metadata modelAPI.Metadata) (int64, *sql.Ro
 	}
 
 	sqlQuery, args := queryBuilder.Build()
-	fmt.Printf("sqlQuery: %+v, sqlQueryArgs: %+v\n", sqlQuery, args)
 
 	// First query: get the ID
 	var id int64

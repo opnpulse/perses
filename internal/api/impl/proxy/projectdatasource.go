@@ -77,7 +77,6 @@ func (e *endpoint) proxySavedProjectDatasource(ctx echo.Context) error {
 func (e *endpoint) getProjectDatasource(ownerName, projectName string, name string) (v1.DatasourceSpec, error) {
 	// Fix me: use ProjectID
 	project, err := e.project.GetByNameAndUser(projectName, ownerName)
-	fmt.Printf("getProjectDatasource project: %+v\n", project)
 	if err != nil {
 		if databaseModel.IsKeyNotFound(err) {
 			logrus.Debugf("unable to find the Project %q", projectName)
@@ -102,7 +101,6 @@ func (e *endpoint) getProjectDatasource(ownerName, projectName string, name stri
 func (e *endpoint) getProjectSecret(ownerName, projectName string, dtsName string, name string) (*v1.SecretSpec, error) {
 	// Fix me: use ProjectID
 	project, err := e.project.GetByNameAndUser(projectName, ownerName)
-	fmt.Printf("getProjectDatasource project: %+v\n", project)
 	if err != nil {
 		return nil, err
 	}

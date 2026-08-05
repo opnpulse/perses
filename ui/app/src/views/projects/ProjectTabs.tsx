@@ -389,7 +389,7 @@ export function ProjectTabs(props: DashboardVariableTabsProps): ReactElement {
         </MenuTabs>
         {!isMobileSize && <TabButton index={value} projectName={projectName} />}
       </Stack>
-      <TabPanel value={value} index={foldersTabIndex} sx={{ marginTop: isMobileSize ? 1 : 2 }}>
+      <TabPanel value={value} idPrefix="project" index={foldersTabIndex} sx={{ marginTop: isMobileSize ? 1 : 2 }}>
         <ProjectFolders projectName={projectName} id="project-folder-list" />
       </TabPanel>
 

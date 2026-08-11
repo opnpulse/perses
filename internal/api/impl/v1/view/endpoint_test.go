@@ -125,6 +125,10 @@ func (m *mockDashboardService) Get(_ apiInterface.Parameters) (*v1.Dashboard, er
 	return nil, fmt.Errorf("not found")
 }
 
+func (*mockDashboardService) GetByNameAndUser(_ apiInterface.Parameters) (*v1.Dashboard, error) {
+	panic("unimplemented")
+}
+
 func (*mockDashboardService) List(_ *dashboard.Query) ([]*v1.Dashboard, error) {
 	panic("unimplemented")
 }

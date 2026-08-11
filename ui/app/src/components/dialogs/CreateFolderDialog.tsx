@@ -1,4 +1,4 @@
-// Copyright 2023 The Perses Authors
+// Copyright The Perses Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,162 +11,168 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Dispatch, DispatchWithoutAction, ReactElement, useCallback } from 'react';
-import { Button, CircularProgress, MenuItem, Stack, TextField } from '@mui/material';
-import { Dialog } from '@perses-dev/components';
+import { Dispatch, DispatchWithoutAction, ReactElement, useMemo } from 'react';
+import { Autocomplete, Button, Chip, CircularProgress, Stack, TextField } from '@mui/material';
+import { Dialog, getResourceDisplayName, getResourceExtendedDisplayName, useSnackbar } from '@perses-dev/components';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
-import { ProjectResource, getResourceDisplayName } from '@perses-dev/core';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FolderItem, FolderResource } from '@perses-dev/client';
+import { CreateFolderValidationType, useFolderValidationSchema } from '../../validation';
+import { useDashboardList } from '../../model/dashboard-client';
+import { useCreateFolderMutation } from '../../model/folder-client';
+import { generateMetadataName } from '../../utils/metadata';
 
-interface CreateFolderProps {
-  open: boolean;
-  projects: ProjectResource[];
-  hideProjectSelect?: boolean;
-  mode?: 'create' | 'duplicate';
-  name?: string;
-  onClose: DispatchWithoutAction;
-  onSuccess?: Dispatch<FolderSelector>;
-}
-
-export interface CreateFolderValidationType {
+export interface CreateFolderDialogProps {
   projectName: string;
-  folderName: string;
-}
-
-export interface FolderSelector {
-  project: string;
-  folder: string;
+  open: boolean;
+  onClose: DispatchWithoutAction;
+  onSuccess?: Dispatch<string>;
 }
 
 /**
- * Dialog used to create a folder.
+ * Dialog used to create a new root-level folder in a project.
+ * @param open Define if the dialog should be opened or not.
+ * @param onClose Provides the function to close itself.
+ * @param onSuccess Action to perform when user confirmed.
+ * @param projectName The project to create the folder in.
  */
-export const CreateFolderDialog = (props: CreateFolderProps): ReactElement => {
-  const { open, projects, hideProjectSelect, mode, name, onClose, onSuccess } = props;
+export const CreateFolderDialog = ({
+  projectName,
+  open,
+  onClose,
+  onSuccess,
+}: CreateFolderDialogProps): ReactElement => {
+  const { successSnackbar, exceptionSnackbar } = useSnackbar();
+  const { data: dashboards } = useDashboardList({ project: projectName });
+  const createFolderMutation = useCreateFolderMutation();
+  const { schema, isSchemaLoading } = useFolderValidationSchema(projectName);
 
-  const action = mode === 'duplicate' ? 'Duplicate' : 'Create';
-
-  // Disables closing on click out
-  const handleClickOut = (): void => {
-    /* do nothing */
-  };
-
-  return (
-    <Dialog open={open} onClose={handleClickOut} aria-labelledby="confirm-dialog" fullWidth={true}>
-      <Dialog.Header>
-        {action} Folder{name && ': ' + name}
-      </Dialog.Header>
-      <FolderForm {...{ projects, hideProjectSelect, onClose, onSuccess }} />
-    </Dialog>
+  const options = useMemo(
+    () => [...(dashboards?.values() ?? [])].map((d) => ({ label: getResourceDisplayName(d), name: d.metadata.name })),
+    [dashboards]
   );
-};
 
-interface FolderFormProps {
-  projects: ProjectResource[];
-  hideProjectSelect?: boolean;
-  onClose: DispatchWithoutAction;
-  onSuccess?: Dispatch<FolderSelector>;
-}
-
-const FolderForm = (props: FolderFormProps): ReactElement => {
-  const { projects, hideProjectSelect, onClose, onSuccess } = props;
-
-  // If you had a schema you could plug it here with zodResolver
-  const folderForm = useForm<CreateFolderValidationType>({
+  const form = useForm<CreateFolderValidationType>({
+    resolver: schema ? zodResolver(schema) : undefined,
     mode: 'onBlur',
-    defaultValues: { folderName: '', projectName: projects[0]?.metadata.name ?? '' },
+    defaultValues: {
+      selectedDashboards: [],
+      name: '',
+    },
   });
+  const { reset } = form;
 
-  const handleProcessFolderForm = useCallback((): SubmitHandler<CreateFolderValidationType> => {
-    return (data) => {
-      onClose();
-      if (onSuccess) {
-        onSuccess({ project: data.projectName, folder: data.folderName });
-      }
+  const processForm: SubmitHandler<CreateFolderValidationType> = (data) => {
+    const dashboardItems: FolderItem[] = data.selectedDashboards.map((option) => ({
+      kind: 'Dashboard' as const,
+      name: option.name,
+    }));
+    const newFolder: FolderResource = {
+      kind: 'Folder',
+      metadata: {
+        name: generateMetadataName(data.name),
+        project: projectName,
+      },
+      spec: {
+        display: { name: data.name },
+        items: dashboardItems,
+      },
     };
-  }, [onClose, onSuccess]);
+
+    createFolderMutation.mutate(newFolder, {
+      onSuccess: (createdFolder: FolderResource) => {
+        successSnackbar(`Folder ${getResourceExtendedDisplayName(createdFolder)} has been successfully created`);
+        onClose();
+        reset();
+        onSuccess?.(createdFolder.metadata.name);
+      },
+      onError: (err) => {
+        exceptionSnackbar(err);
+        throw err;
+      },
+    });
+  };
 
   const handleClose = (): void => {
     onClose();
-    folderForm.reset();
+    reset();
   };
 
-  if (!projects || projects.length === 0) {
-    return (
-      <Stack
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          width: '100%',
-          overflow: 'hidden',
-        }}
-      >
-        <CircularProgress />
-      </Stack>
-    );
-  }
-
   return (
-    <FormProvider {...folderForm}>
-      <form onSubmit={folderForm.handleSubmit(handleProcessFolderForm())}>
-        <Dialog.Content sx={{ width: '100%' }}>
-          <Stack gap={1}>
-            {!hideProjectSelect && (
-              <Controller
-                control={folderForm.control}
-                name="projectName"
-                render={({ field, fieldState }) => (
-                  <TextField
-                    select
-                    {...field}
-                    required
-                    id="project"
-                    label="Project name"
-                    type="text"
-                    fullWidth
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                  >
-                    {projects.map((option) => {
-                      return (
-                        <MenuItem key={option.metadata.name} value={option.metadata.name}>
-                          {getResourceDisplayName(option)}
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
-                )}
-              />
-            )}
-            <Controller
-              control={folderForm.control}
-              name="folderName"
-              render={({ field, fieldState }) => (
-                <TextField
-                  {...field}
-                  required
-                  margin="dense"
-                  id="name"
-                  label="Folder Name"
-                  type="text"
-                  fullWidth
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
+    <Dialog open={open} onClose={handleClose} aria-labelledby="confirm-dialog" fullWidth={true}>
+      <Dialog.Header>Add Folder</Dialog.Header>
+      {isSchemaLoading ? (
+        <Stack
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            width: '100%',
+            overflow: 'hidden',
+          }}
+        >
+          <CircularProgress />
+        </Stack>
+      ) : (
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(processForm)}>
+            <Dialog.Content sx={{ width: '100%' }}>
+              <Stack spacing={2}>
+                <Controller
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      label="Name"
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                      {...field}
+                    />
+                  )}
+                  name="name"
                 />
-              )}
-            />
-          </Stack>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button variant="contained" disabled={!folderForm.formState.isValid} type="submit">
-            Add
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-        </Dialog.Actions>
-      </form>
-    </FormProvider>
+                <Controller
+                  control={form.control}
+                  name="selectedDashboards"
+                  render={({ field, fieldState }) => (
+                    <Autocomplete
+                      multiple
+                      disableCloseOnSelect
+                      options={options}
+                      getOptionLabel={(option) => option.label}
+                      getOptionKey={(option) => option.name}
+                      isOptionEqualToValue={(option, value) => option.name === value.name}
+                      value={field.value}
+                      onChange={(_, newValue) => field.onChange(newValue)}
+                      renderTags={(value, getTagProps) =>
+                        value.map((option, index) => (
+                          <Chip {...getTagProps({ index })} key={option.name} label={option.label} />
+                        ))
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Dashboards"
+                          placeholder="Select dashboards"
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  )}
+                />
+              </Stack>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button variant="contained" disabled={!form.formState.isValid} type="submit">
+                Add
+              </Button>
+              <Button variant="outlined" color="secondary" onClick={handleClose}>
+                Cancel
+              </Button>
+            </Dialog.Actions>
+          </form>
+        </FormProvider>
+      )}
+    </Dialog>
   );
 };

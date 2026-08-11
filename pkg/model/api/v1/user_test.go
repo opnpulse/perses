@@ -86,7 +86,7 @@ func TestUnmarshalUser(t *testing.T) {
 	}
 }
 
-func TestUnmarshalUserError(t *testing.T) {
+func TestValidateProviders(t *testing.T) {
 	testSuite := []struct {
 		title string
 		jason string
@@ -120,7 +120,9 @@ func TestUnmarshalUserError(t *testing.T) {
 	for _, test := range testSuite {
 		t.Run(test.title, func(t *testing.T) {
 			result := User{}
-			assert.Equal(t, test.err, json.Unmarshal([]byte(test.jason), &result))
+			// Decoding must succeed so that already-stored records stay readable.
+			assert.NoError(t, json.Unmarshal([]byte(test.jason), &result))
+			assert.Equal(t, test.err, result.ValidateProviders())
 		})
 	}
 }

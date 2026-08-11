@@ -28,7 +28,6 @@ import (
 	modelAPI "github.com/perses/perses/pkg/model/api"
 	"github.com/perses/perses/pkg/model/api/config"
 	modelV1 "github.com/perses/perses/pkg/model/api/v1"
-	promConfig "github.com/prometheus/common/config"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
@@ -167,9 +166,7 @@ func New(conf config.Database) (databaseModel.DAO, error) {
 				AllowAllFiles:            c.AllowAllFiles,
 				AllowCleartextPasswords:  c.AllowCleartextPasswords,
 				AllowFallbackToPlaintext: c.AllowFallbackToPlaintext,
-				AllowNativePasswords:     c.AllowNativePasswords,
 				AllowOldPasswords:        c.AllowOldPasswords,
-				CheckConnLiveness:        c.CheckConnLiveness,
 				ClientFoundRows:          c.ClientFoundRows,
 				ColumnsWithAlias:         c.ColumnsWithAlias,
 				InterpolateParams:        c.InterpolateParams,
@@ -177,10 +174,16 @@ func New(conf config.Database) (databaseModel.DAO, error) {
 				ParseTime:                c.ParseTime,
 				RejectReadOnly:           c.RejectReadOnly,
 			}
+			if c.AllowNativePasswords != nil {
+				mysqlConfig.AllowNativePasswords = *c.AllowNativePasswords
+			}
+			if c.CheckConnLiveness != nil {
+				mysqlConfig.CheckConnLiveness = *c.CheckConnLiveness
+			}
 
 			// (OPTIONAL) Configure TLS
 			if c.TLSConfig != nil {
-				tlsConfig, parseErr := promConfig.NewTLSConfig(c.TLSConfig)
+				tlsConfig, parseErr := c.TLSConfig.BuildTLSConfig()
 				if parseErr != nil {
 					logrus.WithError(parseErr).Error("Failed to parse TLS from configuration")
 					return nil, parseErr

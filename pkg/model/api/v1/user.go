@@ -97,6 +97,14 @@ func (u *User) validate() error {
 	if u.Kind != KindUser {
 		return fmt.Errorf("invalid kind: '%s' for a User type", u.Kind)
 	}
+	return nil
+}
+
+// ValidateProviders enforces that a user authenticates through exactly one provider.
+// It is deliberately not part of validate(): validate() runs during UnmarshalJSON, which is
+// also how users are decoded when read back from the database. Enforcing this on read would
+// make already-stored records with both providers unreadable, locking those users out.
+func (u *User) ValidateProviders() error {
 	if len(u.Spec.NativeProvider.Password) > 0 && len(u.Spec.OauthProviders) > 0 {
 		return fmt.Errorf("nativeProvider and oauthProviders are mutually exclusive, use one of them")
 	}

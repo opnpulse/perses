@@ -52,6 +52,9 @@ func (s *service) Create(_ echo.Context, entity *v1.User) (*v1.PublicUser, error
 func (s *service) create(entity *v1.User) (*v1.PublicUser, error) {
 	// Update the time contains in the entity
 	entity.Metadata.CreateNow()
+	if err := entity.ValidateProviders(); err != nil {
+		return nil, fmt.Errorf("%w: %s", apiInterface.BadRequestError, err.Error())
+	}
 	// check that the password is correctly filled
 	if len(entity.Spec.NativeProvider.Password) == 0 {
 		return nil, fmt.Errorf("%w: password cannot be empty", apiInterface.BadRequestError)
@@ -85,6 +88,9 @@ func (s *service) update(entity *v1.User, parameters apiInterface.Parameters) (*
 	if entity.Metadata.Name != parameters.Name {
 		logrus.Debugf("name in user '%s' and coming from the http request: '%s' doesn't match", entity.Metadata.Name, parameters.Name)
 		return nil, fmt.Errorf("%w: metadata.name and the name in the http path request doesn't match", apiInterface.BadRequestError)
+	}
+	if err := entity.ValidateProviders(); err != nil {
+		return nil, fmt.Errorf("%w: %s", apiInterface.BadRequestError, err.Error())
 	}
 	// find the previous version of the project
 	oldEntity, err := s.dao.Get(parameters.Name)

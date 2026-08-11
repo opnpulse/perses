@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
-import { fetchJson, StatusError } from '@perses-dev/core';
+import { fetchJson, StatusError } from '@perses-dev/client';
 
 const resource = '/api/v1/branding';
 

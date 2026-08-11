@@ -27,7 +27,6 @@ require (
 	github.com/huandu/go-sqlbuilder v1.42.1
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/kylelemons/godebug v1.1.0
-	github.com/labstack/echo-jwt/v4 v4.4.0
 	github.com/labstack/echo/v4 v4.15.4
 	github.com/lib/pq v1.10.9
 	github.com/mholt/archives v0.1.5

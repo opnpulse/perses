@@ -176,6 +176,34 @@ type PublicMetadata struct {
 	UpdatedAt time.Time       `json:"updatedAt" yaml:"updatedAt"`
 	Version   uint64          `json:"version" yaml:"version"`
 	Tags      set.Set[string] `json:"tags,omitempty" yaml:"tags,omitempty"`
+
+	UserID     int64  `json:"userID" yaml:"userID"`
+	ProjectID  int64  `json:"projectID" yaml:"projectID"`
+	FolderID   int64  `json:"folderID" yaml:"folderID"`
+	FolderName string `json:"folderName,omitempty" yaml:"folderName"`
+
+	// types: [user, org]
+	UserType string `json:"userType,omitempty" yaml:"userType"`
+}
+
+func (m *PublicMetadata) GetUserID() int64 {
+	return m.UserID
+}
+
+func (m *PublicMetadata) GetProject() string {
+	return ""
+}
+
+func (m *PublicMetadata) GetFolderID() int64 {
+	return m.FolderID
+}
+
+func (m *PublicMetadata) GetProjectID() int64 {
+	return m.ProjectID
+}
+
+func (m *PublicMetadata) GetUserType() string {
+	return m.UserType
 }
 
 func NewPublicMetadata(name string) PublicMetadata {
@@ -375,6 +403,10 @@ func NewPublicProjectMetadataFromCopy(metadata ProjectMetadata) PublicProjectMet
 
 func (pm *PublicProjectMetadata) GetName() string {
 	return pm.Name
+}
+
+func (pm *PublicProjectMetadata) GetProject() string {
+	return pm.Project
 }
 
 func (pm *PublicProjectMetadata) Flatten(sensitive bool) {

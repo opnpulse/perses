@@ -68,7 +68,6 @@ func (q *Query) SetUserID(userID int64) {
 func (q *Query) SetProjectID(projectID int64) {
 	q.ProjectID = projectID
 }
-}
 
 type DAO interface {
 	Create(entity *v1.Secret) error

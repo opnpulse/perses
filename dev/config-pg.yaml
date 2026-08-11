@@ -26,6 +26,7 @@ database:
     db_name: "bb"
     addr: "localhost:5432"
     allow_native_passwords: true
+    case_sensitive: true
 
 api_prefix: "/observe"
 #provisioning:

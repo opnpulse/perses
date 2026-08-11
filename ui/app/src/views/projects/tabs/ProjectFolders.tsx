@@ -8,6 +8,7 @@ import {
   useDeleteFolderMutation,
   useUpdateFolderMutation,
 } from '../../../model/folder-client';
+import { FolderResource } from '@perses-dev/client';
 import { useIsEphemeralDashboardEnabled, useIsReadonly } from '../../../context/Config';
 import { ChevronDown, DeleteOutline, Pencil } from 'mdi-material-ui';
 import FolderIcon from 'mdi-material-ui/Folder';
@@ -49,7 +50,7 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
 
   function handleFolderDelete(folder: FolderWithDashboards): void {
     deleteFolderMutation.mutate(folder, {
-      onSuccess: (deletedFolder: FolderWithDashboards): void => {
+      onSuccess: (deletedFolder: FolderResource): void => {
         successSnackbar(`Folder ${deletedFolder.metadata.name} has been successfully deleted`);
         setIsDeleteFolderDialogOpen(false);
       },
@@ -102,11 +103,8 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
         <AccordionDetails sx={{ padding: 0 }}>
           <DashboardList
             dashboardList={dashboards || []}
-            hideToolbar={true}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 25, page: 0 } },
-              columns: { columnVisibilityModel: { id: false, project: false, version: false } },
-            }}
+            folderList={[folder]}
+            isLoading={isLoading}
             isEphemeralDashboardEnabled={isEphemeralDashboardEnabled}
           />
         </AccordionDetails>

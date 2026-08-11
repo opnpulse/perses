@@ -48,10 +48,6 @@ func (s *service) Create(_ echo.Context, entity *v1.Folder) (*v1.Folder, error) 
 func (s *service) create(entity *v1.Folder) (*v1.Folder, error) {
 	// Update the time contains in the entity
 	entity.Metadata.CreateNow()
-	if entity.Spec == nil {
-		spec := make([]v1.FolderSpec, 0)
-		entity.Spec = spec
-	}
 	if err := s.dao.Create(entity); err != nil {
 		return nil, err
 	}

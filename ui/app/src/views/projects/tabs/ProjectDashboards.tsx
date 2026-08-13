@@ -16,22 +16,30 @@ import { ReactElement } from 'react';
 import { useDashboardList } from '../../../model/dashboard-client';
 import { DashboardList } from '../../../components/DashboardList/DashboardList';
 import { useIsEphemeralDashboardEnabled } from '../../../context/Config';
-import { useFolderList } from '../../../model/folder-client';
 
 interface ProjectDashboardsProps extends BoxProps {
   projectName: string;
+  hideToolbar?: boolean;
 }
-export function ProjectDashboards({ projectName, ...props }: ProjectDashboardsProps): ReactElement {
+export function ProjectDashboards({ projectName, hideToolbar, ...props }: ProjectDashboardsProps): ReactElement {
   const { data, isLoading } = useDashboardList({ project: projectName });
-  const { data: folderList, isLoading: isLoadingFolderList } = useFolderList({ project: projectName });
   const isEphemeralDashboardEnabled = useIsEphemeralDashboardEnabled();
 
   return (
     <Box {...props}>
       <DashboardList
         dashboardList={data ?? []}
-        folderList={folderList ?? []}
-        isLoading={isLoading || isLoadingFolderList}
+        hideToolbar={hideToolbar}
+        isLoading={isLoading}
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              id: false,
+              project: false,
+              version: false,
+            },
+          },
+        }}
         isEphemeralDashboardEnabled={isEphemeralDashboardEnabled}
       />
     </Box>

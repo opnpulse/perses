@@ -61,7 +61,9 @@ function GrafanaFlow({ dashboard }: GrafanaFlowProps): ReactElement {
   const [useDefaultDatasource, setUseDefaultDatasource] = useState(false);
   const { data, isLoading, error } = useProjectList();
   const dashboardMutation = useCreateDashboardMutation((data) => {
-    navigate(`/projects/${data.metadata.project}/dashboards/${data.metadata.name}`);
+    navigate(
+      `/projects/${data.metadata.project}/folders/${data.metadata.folderName ?? data.metadata.folder}/dashboards/${data.metadata.name}`
+    );
   });
 
   // initialize the map with the provided input values if exist

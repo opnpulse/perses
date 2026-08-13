@@ -103,8 +103,12 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
         <AccordionDetails sx={{ padding: 0 }}>
           <DashboardList
             dashboardList={dashboards || []}
-            folderList={[folder]}
+            hideToolbar={true}
             isLoading={isLoading}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 25, page: 0 } },
+              columns: { columnVisibilityModel: { id: false, project: false, version: false } },
+            }}
             isEphemeralDashboardEnabled={isEphemeralDashboardEnabled}
           />
         </AccordionDetails>

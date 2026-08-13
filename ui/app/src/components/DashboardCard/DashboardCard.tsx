@@ -35,7 +35,7 @@ export function DashboardCard({ dashboard, hideIcon }: DashboardCardProps): Reac
       }}
       title={getResourceDisplayName(dashboard)}
       component={RouterLink}
-      to={`/projects/${dashboard.metadata.project}/dashboards/${dashboard.metadata.name}`}
+      to={`/projects/${dashboard.metadata.project}/folders/${dashboard.metadata.folderName ?? dashboard.metadata.folder}/dashboards/${dashboard.metadata.name}`}
       data-testid={`dashboard-card-${dashboard.metadata.project}-${dashboard.metadata.name}`}
     >
       <Stack

@@ -100,7 +100,7 @@ export function ImportantDashboards(): ReactElement {
                 <Box key={dashboardKey}>
                   <Box
                     component={RouterLink}
-                    to={`/projects/${dashboard.metadata.project}/dashboards/${dashboard.metadata.name}`}
+                    to={`/projects/${dashboard.metadata.project}/folders/${dashboard.metadata.folderName ?? dashboard.metadata.folder}/dashboards/${dashboard.metadata.name}`}
                     role="row"
                     aria-label={`${dashboard.metadata.project} ${dashboard.metadata.name}`}
                     sx={{

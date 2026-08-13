@@ -13,20 +13,8 @@
 
 import { z } from 'zod';
 import { useMemo } from 'react';
-import { FolderItem } from '@perses-dev/client';
 import { useFolderList } from '../model/folder-client';
-import { getSubFolderRef } from '../utils/folderUtils';
 import { generateMetadataName } from '../utils/metadata';
-
-export const editFolderDialogValidationSchema = z.object({
-  selectedDashboards: z.array(
-    z.object({
-      name: z.string(),
-      label: z.string(),
-    })
-  ),
-  name: z.string().min(1, 'Name is required'),
-});
 
 export const createFolderDialogValidationSchema = z.object({
   selectedDashboards: z.array(
@@ -38,7 +26,6 @@ export const createFolderDialogValidationSchema = z.object({
   name: z.string().min(1, 'Name is required'),
 });
 
-export type EditFolderValidationType = z.infer<typeof editFolderDialogValidationSchema>;
 export type CreateFolderValidationType = z.infer<typeof createFolderDialogValidationSchema>;
 
 export interface FolderValidationSchema {
@@ -91,26 +78,4 @@ export function useFolderValidationSchema(projectName?: string): FolderValidatio
 
     return { schema: refinedSchema, isSchemaLoading: false, hasSchemaError: false };
   }, [folders, isFoldersLoading, isError, projectName]);
-}
-
-/**
- * Returns a validation schema for the Add Sub-folder dialog.
- * Extends {@link editFolderDialogValidationSchema} with a sibling name uniqueness check at the level identified by `path`.
- *
- * @param items - Root items array of the {@link FolderResource} being edited.
- * @param path - Ordered folder names leading to the parent of the new sub-folder. Pass `[]` for root level.
- */
-export function useAddFolderValidationSchema(items: FolderItem[], path: string[]): z.ZodSchema {
-  return useMemo(() => {
-    const siblings = path.length === 0 ? items : (getSubFolderRef(items, path).items ?? []);
-    const siblingFolderNames = siblings.filter((s) => s.kind === 'Folder').map((s) => s.name.toLowerCase());
-
-    return editFolderDialogValidationSchema.refine(
-      (data) => !siblingFolderNames.includes(data.name.toLowerCase()),
-      (data) => ({
-        message: `A folder named '${data.name}' already exists at this level!`,
-        path: ['name'],
-      })
-    );
-  }, [items, path]);
 }

@@ -32,7 +32,9 @@ function PersesFlow({ dashboard }: PersesFlowProps): ReactElement {
   const [projectName, setProjectName] = useState<string>('');
   const { data, error } = useProjectList();
   const dashboardMutation = useCreateDashboardMutation((data) => {
-    navigate(`/projects/${data.metadata.project}/dashboards/${data.metadata.name}`);
+    navigate(
+      `/projects/${data.metadata.project}/folders/${data.metadata.folderName ?? data.metadata.folder}/dashboards/${data.metadata.name}`
+    );
   });
 
   const importOnClick = (): void => {

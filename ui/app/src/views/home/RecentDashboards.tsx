@@ -103,7 +103,7 @@ export function RecentDashboards(): ReactElement {
                   <Box key={dashboardKey}>
                     <Box
                       component={RouterLink}
-                      to={`/projects/${item.dashboard.metadata.project}/dashboards/${item.dashboard.metadata.name}`}
+                      to={`/projects/${item.dashboard.metadata.project}/folders/${item.dashboard.metadata.folderName ?? item.dashboard.metadata.folder}/dashboards/${item.dashboard.metadata.name}`}
                       role="row"
                       aria-label={`${item.dashboard.metadata.project} ${item.dashboard.metadata.name}`}
                       sx={{

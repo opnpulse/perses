@@ -324,11 +324,24 @@ func (d *DAO) generateSelectQueryWithUserIDForDashboards(project string, name st
 		projectID = pId
 	}
 
-	// Step 1: Get all folders for this project
-	folderQuery := sqlbuilder.PostgreSQL.NewSelectBuilder().
-		Select(colID).
-		From(d.generateCompleteTableName(tableFolder))
-	folderQuery.Where(folderQuery.Equal(colProjectID, projectID))
+	// Step 1: Get all folders in scope.
+	folderQuery := sqlbuilder.PostgreSQL.NewSelectBuilder()
+	if projectID != 0 {
+		folderQuery.Select(colID).
+			From(d.generateCompleteTableName(tableFolder))
+		folderQuery.Where(folderQuery.Equal(colProjectID, projectID))
+	} else {
+		// No project was requested, so scope the folders to every project owned by the user.
+		// Filtering on project_id = 0 would never match anything, which would make the
+		// cross-project listings (home page, search, recently viewed) always come back empty.
+		folderAlias := "f"
+		projectAlias := "p"
+		folderQuery.Select(folderAlias+"."+colID).
+			From(d.generateCompleteTableName(tableFolder)+" "+folderAlias).
+			Join(d.generateCompleteTableName(tableProject)+" "+projectAlias,
+				folderAlias+"."+colProjectID+" = "+projectAlias+"."+colID)
+		folderQuery.Where(folderQuery.Equal(projectAlias+"."+colUserID, u))
+	}
 
 	q, args := folderQuery.Build()
 	rows, runQueryErr := d.DB.Query(q, args...)

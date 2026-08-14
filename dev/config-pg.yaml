@@ -63,5 +63,5 @@ frontend:
       dashboard: "MarkdownPanel"
 
   information: |-
-    # Hello World
-    ## File Database setup
+    # Welcome to Observe
+    ### Build and share dashboards for your metrics, logs and traces.

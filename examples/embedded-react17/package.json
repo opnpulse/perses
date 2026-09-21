@@ -12,7 +12,7 @@
     "@mui/material": "^6",
     "@perses-dev/components": "latest",
     "@perses-dev/core": "latest",
-    "@observe/dashboards": "git+https://github.com/opnpulse/shared#observe",
+    "@openpulse/shared": "git+https://github.com/opnpulse/shared#observe",
     "@perses-dev/plugin-system": "latest",
     "@perses-dev/prometheus-plugin": "latest",
     "@perses-dev/timeseries-chart-plugin": "latest",

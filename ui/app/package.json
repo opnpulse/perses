@@ -22,7 +22,7 @@
     "@nexucis/kvsearch": "^0.9.1",
     "@perses-dev/client": "^0.54.0",
     "@perses-dev/components": "^0.54.0",
-    "@observe/dashboards": "git+https://github.com/opnpulse/shared#observe",
+    "@openpulse/shared": "git+https://github.com/opnpulse/shared#observe",
     "@perses-dev/explore": "^0.54.0",
     "@perses-dev/plugin-system": "^0.54.0",
     "@perses-dev/spec": "0.2.0",

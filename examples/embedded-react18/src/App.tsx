@@ -20,7 +20,10 @@ import {
 } from '@perses-dev/plugin-system';
 import { Box, ThemeProvider } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DatasourceStoreProvider, Panel, VariableProvider, DatasourceApi } from '@perses-dev/dashboards';
+import { DatasourceStoreProvider } from '@openpulse/shared/dashboards/src/context/DatasourceStoreProvider';
+import { Panel } from '@openpulse/shared/dashboards/src/components/Panel/Panel';
+import { VariableProvider } from '@openpulse/shared/dashboards/src/context/VariableProvider/VariableProvider';
+import { DatasourceApi } from '@openpulse/shared/client/src/model/datasource-api';
 import { DashboardResource, GlobalDatasourceResource, DatasourceResource } from '@perses-dev/core';
 import * as prometheusPlugin from '@perses-dev/prometheus-plugin';
 import * as timeseriesChartPlugin from '@perses-dev/timeseries-chart-plugin';

@@ -14,15 +14,9 @@
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Dialog, DialogContent, DialogTitle, Divider, IconButton, Typography } from '@mui/material';
 import Close from 'mdi-material-ui/Close';
-import {
-  useHotkeyRegistrations,
-  formatForDisplay,
-  SHORTCUT_CATEGORY_LABELS,
-  SHORTCUT_CATEGORY_ORDER,
-  ShortcutCategory,
-  SHOW_SHORTCUTS_EVENT,
-  HotkeyMeta,
-} from '@perses-dev/dashboards';
+import { useHotkeyRegistrations, formatForDisplay, HotkeyMeta } from '@openpulse/shared/dashboards/src/keyboard-shortcuts';
+import { SHORTCUT_CATEGORY_LABELS, SHORTCUT_CATEGORY_ORDER, ShortcutCategory } from '@openpulse/shared/dashboards/src/keyboard-shortcuts/types';
+import { SHOW_SHORTCUTS_EVENT } from '@openpulse/shared/dashboards/src/keyboard-shortcuts/events';
 
 /** Modal displaying all registered keyboard shortcuts, grouped by category. */
 export function ShortcutHelpModal(): ReactElement {

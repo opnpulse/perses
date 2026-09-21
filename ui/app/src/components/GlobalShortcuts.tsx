@@ -13,21 +13,22 @@
 
 import { ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useHotkeys, useHotkeySequences } from '@openpulse/shared/dashboards/src/keyboard-shortcuts';
 import {
-  useHotkeys,
-  useHotkeySequences,
   buildShortcutOptions,
   dispatchShortcutEvent,
   requireShortcutEvent,
   requireShortcutHotkey,
   requireShortcutSequence,
+} from '@openpulse/shared/dashboards/src/keyboard-shortcuts/utils';
+import {
   GO_HOME_SHORTCUT,
   GO_EXPLORE_SHORTCUT,
   GO_PROFILE_SHORTCUT,
   OPEN_SEARCH_SHORTCUT,
   SHOW_SHORTCUTS_SHORTCUT,
   TOGGLE_THEME_SHORTCUT,
-} from '@perses-dev/dashboards';
+} from '@openpulse/shared/dashboards/src/keyboard-shortcuts/default-shortcuts/global';
 import { ExploreRoute, ProfileRoute } from '../model/route';
 
 /** Registers all global keyboard shortcuts. Requires HotkeysProvider and ScopeProvider. */

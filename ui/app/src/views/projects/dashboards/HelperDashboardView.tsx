@@ -14,7 +14,9 @@
 import { Box, CircularProgress, Stack } from '@mui/material';
 import { ErrorAlert, ErrorBoundary, getResourceDisplayName, useLocalStorage } from '@perses-dev/components';
 import { DashboardSpec } from '@perses-dev/spec';
-import { ExternalVariableDefinition, OnSaveDashboard, ViewDashboard } from '@perses-dev/dashboards';
+import { ExternalVariableDefinition } from '@openpulse/shared/dashboards/src/model/VariableDefinition';
+import { OnSaveDashboard } from '@openpulse/shared/dashboards/src/context/DashboardProvider/common';
+import { ViewDashboard } from '@openpulse/shared/dashboards/src/views/ViewDashboard/ViewDashboard';
 import { PluginRegistry, UsageMetricsProvider, ValidationProvider } from '@perses-dev/plugin-system';
 import { ReactElement, useMemo } from 'react';
 import { DashboardResource } from '@perses-dev/client';

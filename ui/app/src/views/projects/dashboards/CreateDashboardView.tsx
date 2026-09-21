@@ -13,7 +13,7 @@
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getResourceExtendedDisplayName, useSnackbar } from '@perses-dev/components';
-import { DEFAULT_DASHBOARD_DURATION, DEFAULT_REFRESH_INTERVAL } from '@perses-dev/dashboards';
+import { DEFAULT_DASHBOARD_DURATION, DEFAULT_REFRESH_INTERVAL } from '@openpulse/shared/dashboards/src/constants/defaults';
 import { ReactElement, useCallback, useState } from 'react';
 import { DashboardSpec } from '@perses-dev/spec';
 import { DashboardResource } from '@perses-dev/client';

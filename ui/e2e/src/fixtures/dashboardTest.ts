@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { ConsoleMessage, test as testBase, expect } from '@playwright/test';
-import { DashboardResource } from '@perses-dev/dashboards';
+import { DashboardResource } from '@openpulse/shared/client/src/model/dashboard';
 import { AppHomePage, DashboardPage } from '../pages';
 
 type DashboardTestOptions = {

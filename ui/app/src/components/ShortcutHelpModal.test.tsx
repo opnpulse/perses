@@ -19,11 +19,19 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 const mockHotkeys: Array<{ hotkey: string; options: { meta: Record<string, string> } }> = [];
 const mockSequences: Array<{ sequence: string[]; options: { meta: Record<string, string> } }> = [];
 
-// Must mock @perses-dev/dashboards before importing the component under test,
-// since it resolves outside the perses/ui workspace.
+// Must mock the shared keyboard-shortcuts modules before importing the component under test,
+// since they resolve outside the perses/ui workspace.
 const SHOW_SHORTCUTS_EVENT = 'perses:show-shortcuts';
 
-jest.mock('@perses-dev/dashboards', () => ({
+jest.mock('@openpulse/shared/dashboards/src/keyboard-shortcuts', () => ({
+  useHotkeyRegistrations: (): { hotkeys: typeof mockHotkeys; sequences: typeof mockSequences } => ({
+    hotkeys: mockHotkeys,
+    sequences: mockSequences,
+  }),
+  formatForDisplay: (key: string): string => key.toUpperCase(),
+}));
+
+jest.mock('@openpulse/shared/dashboards/src/keyboard-shortcuts/types', () => ({
   SHORTCUT_CATEGORY_LABELS: {
     global: 'Global',
     'time-range': 'Time Range',
@@ -31,12 +39,10 @@ jest.mock('@perses-dev/dashboards', () => ({
     'focused-panel': 'Focused Panel',
   },
   SHORTCUT_CATEGORY_ORDER: ['global', 'time-range', 'dashboard', 'focused-panel'],
+}));
+
+jest.mock('@openpulse/shared/dashboards/src/keyboard-shortcuts/events', () => ({
   SHOW_SHORTCUTS_EVENT: 'perses:show-shortcuts',
-  useHotkeyRegistrations: (): { hotkeys: typeof mockHotkeys; sequences: typeof mockSequences } => ({
-    hotkeys: mockHotkeys,
-    sequences: mockSequences,
-  }),
-  formatForDisplay: (key: string): string => key.toUpperCase(),
 }));
 
 // Import after mocks are set up

@@ -12,7 +12,9 @@
 // limitations under the License.
 
 import { Drawer, ErrorAlert, ErrorBoundary } from '@perses-dev/components';
-import { DatasourceStoreProvider, VariableDefinition, VariableProviderWithQueryParams } from '@perses-dev/dashboards';
+import { DatasourceStoreProvider } from '@openpulse/shared/dashboards/src/context/DatasourceStoreProvider';
+import { VariableDefinition } from '@openpulse/shared/dashboards/src/model/VariableDefinition';
+import { VariableProviderWithQueryParams } from '@openpulse/shared/dashboards/src/context/VariableProvider/VariableProvider';
 import {
   PluginRegistry,
   TimeRangeProviderWithQueryParams,

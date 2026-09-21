@@ -20,7 +20,7 @@ import {
   getTheme,
   useLocalStorage,
 } from '@perses-dev/components';
-import { TOGGLE_THEME_EVENT } from '@perses-dev/dashboards';
+import { TOGGLE_THEME_EVENT } from '@openpulse/shared/dashboards/src/keyboard-shortcuts/events';
 
 // app specific echarts option overrides, empty since perses uses default
 // https://apache.github.io/echarts-handbook/en/concepts/style/#theme

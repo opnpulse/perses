@@ -18,7 +18,7 @@ import { CookiesProvider } from 'react-cookie';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
-import { HotkeysProvider } from '@perses-dev/dashboards';
+import { HotkeysProvider } from '@openpulse/shared/dashboards/src/keyboard-shortcuts';
 import { PersesLoader } from './components/PersesLoader';
 import { AuthorizationProvider } from './context/Authorization';
 import {

@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { VariableType } from '@perses-dev/client';
-import { ExternalVariableDefinition } from '@perses-dev/dashboards';
+import { ExternalVariableDefinition } from '@openpulse/shared/dashboards/src/model/VariableDefinition';
 import { ExternalVariableSource } from '../model/variables';
 
 export function buildProjectVariableDefinition(

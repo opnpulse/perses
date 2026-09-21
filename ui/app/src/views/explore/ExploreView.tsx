@@ -22,7 +22,7 @@ import { ViewExplore } from '@perses-dev/explore';
 import { useQueryClient } from '@tanstack/react-query';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { ProjectResource } from '@perses-dev/client';
-import { ExternalVariableDefinition } from '@perses-dev/dashboards';
+import { ExternalVariableDefinition } from '@openpulse/shared/dashboards/src/model/VariableDefinition';
 import { Breadcrumbs, HomeLinkCrumb, StackCrumb, TitleCrumb } from '../../components/breadcrumbs/breadcrumbs';
 import { useDatasourceApi } from '../../model/datasource-api';
 import { useRemotePluginLoader } from '../../model/remote-plugin-loader';

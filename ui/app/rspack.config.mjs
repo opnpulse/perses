@@ -24,6 +24,14 @@ const isSharedDev = isDev && process.env.SHARED_DEV === 'true';
 const sharedPackagesPath = process.env.SHARED_PACKAGES_PATH ?? resolve(import.meta.dirname, '../../../shared');
 const nodeModulesPath = resolve(import.meta.dirname, '../node_modules');
 const sharedNodeModulesPath = resolve(sharedPackagesPath, 'node_modules');
+const openpulseSharedPath = resolve(nodeModulesPath, '@openpulse/shared');
+
+// The app imports the dashboards package from @openpulse/shared sources, while remote plugins receive
+// '@perses-dev/dashboards' through module federation (see PluginRuntime in plugin-system). Point that name at the
+// same sources so the app and the plugins share one module instance (and therefore the same React contexts).
+const openpulseAliases = {
+  '@perses-dev/dashboards': resolve(openpulseSharedPath, 'dashboards/src'),
+};
 
 const localAliases = {  
   '@perses-dev/internal-utils': resolve(nodeModulesPath, '@perses-dev/internal-utils/dist'),
@@ -34,6 +42,7 @@ const sharedAliases = {
   '@perses-dev/components': resolve(sharedPackagesPath, 'components/src'),
   '@perses-dev/dashboards': resolve(sharedPackagesPath, 'dashboards/src'),
   '@perses-dev/plugin-system': resolve(sharedPackagesPath, 'plugin-system/src'),
+  '@openpulse/shared': sharedPackagesPath,
 
   // packages only in shared node_modules
   zustand: resolve(sharedNodeModulesPath, 'zustand'),
@@ -74,7 +83,7 @@ export default defineConfig({
   entry: './src/bundle.ts',
   resolve: {
     extensions: ['...', '.ts', '.tsx', '.jsx'],
-    alias: isSharedDev ? { ...sharedAliases, ...localAliases, ...singletonAliases } : {},
+    alias: isSharedDev ? { ...sharedAliases, ...localAliases, ...singletonAliases } : openpulseAliases,
   },
   optimization: {
     minimizer: [new TerserPlugin(), new rspack.LightningCssMinimizerRspackPlugin()],
@@ -96,7 +105,7 @@ export default defineConfig({
       {
         test: /\.(jsx?|tsx?)$/,
         type: 'javascript/auto',
-        exclude: [/node_modules/],
+        exclude: [/node_modules[\\/](?!@openpulse[\\/]shared[\\/])/],
         use: [
           {
             loader: 'builtin:swc-loader',

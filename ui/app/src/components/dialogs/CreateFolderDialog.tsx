@@ -11,14 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Dispatch, DispatchWithoutAction, ReactElement, useMemo } from 'react';
-import { Autocomplete, Button, Chip, CircularProgress, Stack, TextField } from '@mui/material';
-import { Dialog, getResourceDisplayName, getResourceExtendedDisplayName, useSnackbar } from '@perses-dev/components';
+import { Dispatch, DispatchWithoutAction, ReactElement } from 'react';
+import { Button, CircularProgress, Stack, TextField } from '@mui/material';
+import { Dialog, getResourceExtendedDisplayName, useSnackbar } from '@perses-dev/components';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FolderItem, FolderResource } from '@perses-dev/client';
+import { FolderResource } from '@perses-dev/client';
 import { CreateFolderValidationType, useFolderValidationSchema } from '../../validation';
-import { useDashboardList } from '../../model/dashboard-client';
 import { useCreateFolderMutation } from '../../model/folder-client';
 import { generateMetadataName } from '../../utils/metadata';
 
@@ -43,30 +42,19 @@ export const CreateFolderDialog = ({
   onSuccess,
 }: CreateFolderDialogProps): ReactElement => {
   const { successSnackbar, exceptionSnackbar } = useSnackbar();
-  const { data: dashboards } = useDashboardList({ project: projectName });
   const createFolderMutation = useCreateFolderMutation();
   const { schema, isSchemaLoading } = useFolderValidationSchema(projectName);
-
-  const options = useMemo(
-    () => [...(dashboards?.values() ?? [])].map((d) => ({ label: getResourceDisplayName(d), name: d.metadata.name })),
-    [dashboards]
-  );
 
   const form = useForm<CreateFolderValidationType>({
     resolver: schema ? zodResolver(schema) : undefined,
     mode: 'onBlur',
     defaultValues: {
-      selectedDashboards: [],
       name: '',
     },
   });
   const { reset } = form;
 
   const processForm: SubmitHandler<CreateFolderValidationType> = (data) => {
-    const dashboardItems: FolderItem[] = data.selectedDashboards.map((option) => ({
-      kind: 'Dashboard' as const,
-      name: option.name,
-    }));
     const newFolder: FolderResource = {
       kind: 'Folder',
       metadata: {
@@ -75,7 +63,7 @@ export const CreateFolderDialog = ({
       },
       spec: {
         display: { name: data.name },
-        items: dashboardItems,
+        items: [],
       },
     };
 
@@ -129,36 +117,6 @@ export const CreateFolderDialog = ({
                     />
                   )}
                   name="name"
-                />
-                <Controller
-                  control={form.control}
-                  name="selectedDashboards"
-                  render={({ field, fieldState }) => (
-                    <Autocomplete
-                      multiple
-                      disableCloseOnSelect
-                      options={options}
-                      getOptionLabel={(option) => option.label}
-                      getOptionKey={(option) => option.name}
-                      isOptionEqualToValue={(option, value) => option.name === value.name}
-                      value={field.value}
-                      onChange={(_, newValue) => field.onChange(newValue)}
-                      renderTags={(value, getTagProps) =>
-                        value.map((option, index) => (
-                          <Chip {...getTagProps({ index })} key={option.name} label={option.label} />
-                        ))
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Dashboards"
-                          placeholder="Select dashboards"
-                          error={!!fieldState.error}
-                          helperText={fieldState.error?.message}
-                        />
-                      )}
-                    />
-                  )}
                 />
               </Stack>
             </Dialog.Content>

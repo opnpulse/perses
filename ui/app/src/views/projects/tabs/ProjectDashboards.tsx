@@ -11,13 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Box, BoxProps } from '@mui/material';
+import { Card, CardProps } from '@mui/material';
 import { ReactElement } from 'react';
 import { useDashboardList } from '../../../model/dashboard-client';
 import { DashboardList } from '../../../components/DashboardList/DashboardList';
 import { useIsEphemeralDashboardEnabled } from '../../../context/Config';
 
-interface ProjectDashboardsProps extends BoxProps {
+interface ProjectDashboardsProps extends CardProps {
   projectName: string;
   hideToolbar?: boolean;
 }
@@ -26,7 +26,7 @@ export function ProjectDashboards({ projectName, hideToolbar, ...props }: Projec
   const isEphemeralDashboardEnabled = useIsEphemeralDashboardEnabled();
 
   return (
-    <Box {...props}>
+    <Card {...props}>
       <DashboardList
         dashboardList={data ?? []}
         hideToolbar={hideToolbar}
@@ -42,6 +42,6 @@ export function ProjectDashboards({ projectName, hideToolbar, ...props }: Projec
         }}
         isEphemeralDashboardEnabled={isEphemeralDashboardEnabled}
       />
-    </Box>
+    </Card>
   );
 }

@@ -17,12 +17,6 @@ import { useFolderList } from '../model/folder-client';
 import { generateMetadataName } from '../utils/metadata';
 
 export const createFolderDialogValidationSchema = z.object({
-  selectedDashboards: z.array(
-    z.object({
-      name: z.string(),
-      label: z.string(),
-    })
-  ),
   name: z.string().min(1, 'Name is required'),
 });
 

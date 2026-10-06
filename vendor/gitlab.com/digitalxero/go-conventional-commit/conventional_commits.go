@@ -63,10 +63,10 @@ func ParseConventionalCommit(message string) (commit *ConventionalCommit) {
 	}
 	for i := range footers {
 		footers[i] = strings.TrimSpace(footers[i])
-		if footers[i] == "" { // Remove the element at index i from footers.
-			copy(footers[i:], footers[i+1:])   // Shift a[i+1:] left one index.
-			footers[len(footers)-1] = ""       // Erase last element (write zero value).
-			footers = footers[:len(footers)-1] // Truncate slice.
+		if footers[i] == "" {// Remove the element at index i from footers.
+			copy(footers[i:], footers[i+1:]) // Shift a[i+1:] left one index.
+			footers[len(footers)-1] = ""     // Erase last element (write zero value).
+			footers = footers[:len(footers)-1]     // Truncate slice.
 		}
 	}
 	if len(footers) == 0 {

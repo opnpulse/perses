@@ -3,7 +3,8 @@
 //
 // Source code and other details for the project are available at GitHub:
 //
-//	https://github.com/Nexucis/lamenv
+//   https://github.com/Nexucis/lamenv
+//
 package lamenv
 
 import (
@@ -57,16 +58,15 @@ type Marshaler interface {
 // And sometimes, it's possible there are several keys found.
 //
 // Example of how to use it with the following environment variables available:
+//    MY_PREFIX_A = 1
+//    MY_PREFIX_B = 2
 //
-//	MY_PREFIX_A = 1
-//	MY_PREFIX_B = 2
-//
-//	type T struct {
-//		F int `json:"a,omitempty"`
-//		B int
-//	}
-//	var t T
-//	lamenv.Unmarshal(&t, []string{"MY_PREFIX"})
+//    type T struct {
+//    	F int `json:"a,omitempty"`
+//    	B int
+//    }
+//    var t T
+//    lamenv.Unmarshal(&t, []string{"MY_PREFIX"})
 func Unmarshal(object interface{}, parts []string) error {
 	return New().Unmarshal(object, parts)
 }
@@ -81,20 +81,21 @@ func Unmarshal(object interface{}, parts []string) error {
 // tag: the content preceding the first comma is used as the key, and the
 // following comma-separated options are used to tweak the marshalling process.
 //
+//
 // The field tag format accepted is:
 //
-//	`(...) json|yaml|mapstructure:"[<key>][,<flag1>[,<flag2>]]" (...)`
+//     `(...) json|yaml|mapstructure:"[<key>][,<flag1>[,<flag2>]]" (...)`
 //
 // The following flags are currently supported:
 //
-//	omitempty              Only include the field if it's not set to the zero
-//	                       value for the type or to empty slices or maps.
-//	                       Zero valued structs will be omitted if all their public
-//	                       fields are zero.
+//     omitempty              Only include the field if it's not set to the zero
+//                            value for the type or to empty slices or maps.
+//                            Zero valued structs will be omitted if all their public
+//                            fields are zero.
 //
-//	inline or squash       Inline the field, which must be a struct,
-//	                       causing all of its fields or keys to be processed as if
-//	                       they were part of the outer struct.
+//     inline or squash       Inline the field, which must be a struct,
+//                            causing all of its fields or keys to be processed as if
+//                            they were part of the outer struct.
 //
 // In addition, if the key is "-", the field is ignored.
 //

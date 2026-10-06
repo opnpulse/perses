@@ -162,26 +162,24 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			var persesUser *v1.User
-			user, err := loginWithAceCookie(c.Request())
-			if err != nil || user == nil {
-				persesUser, err = loginWithAccessToken(c, n.accessTokenDAO, n.userDAO)
-				if err != nil {
+			// Perses-local tokens are checked first: forwarding them to ACE always fails
+			// and makes b3 log "access token does not exist" on every request.
+			persesUser, err := loginWithAccessToken(c, n.accessTokenDAO, n.userDAO)
+			if err != nil {
+				user, aceErr := loginWithAceCookie(c.Request())
+				if aceErr != nil || user == nil {
 					return c.JSON(http.StatusUnauthorized, map[string]string{
 						"error": "unauthorized",
 					})
 				}
-				c.Set("perses-user", persesUser)
-
-			} else {
 				persesUser, err = n.userDAO.Get(user.UserName)
 				if err != nil {
 					return c.JSON(http.StatusUnauthorized, map[string]string{
 						"error": "unauthorized",
 					})
 				}
-				c.Set("perses-user", persesUser)
 			}
+			c.Set("perses-user", persesUser)
 
 			if strings.HasPrefix(persesUser.Metadata.Name, v1.OrgSystemUserPrefix) {
 				orgName := strings.TrimPrefix(persesUser.Metadata.Name, v1.OrgSystemUserPrefix)

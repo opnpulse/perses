@@ -53,6 +53,14 @@ jobs:
       - name: Install syft (for SBOM generation)
         uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
 
+      # goreleaser attaches ui-sbom.cdx.json to the release (see .goreleaser.base.yaml).
+      # Upstream builds it in ci.yaml; this workflow has to produce it itself.
+      - name: Generate frontend SBOM (CycloneDX)
+        working-directory: ./ui
+        run: |
+          npm ci
+          npx --yes @cyclonedx/cyclonedx-npm --output-file ../ui-sbom.cdx.json --output-format JSON
+
       - name: Build and push multi-platform image
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

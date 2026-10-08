@@ -14,6 +14,7 @@
 package v1
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -35,12 +36,29 @@ type FolderItem struct {
 	Items []FolderItem `json:"items,omitempty" yaml:"items,omitempty"`
 }
 
+// legacyFolderItem decodes a FolderItem in both formats. Before the folder format changed,
+// the children of a sub-folder were stored under `spec` instead of `items`, so both keys are read.
+type legacyFolderItem struct {
+	Kind       Kind         `json:"kind" yaml:"kind"`
+	Name       string       `json:"name" yaml:"name"`
+	Items      []FolderItem `json:"items,omitempty" yaml:"items,omitempty"`
+	LegacySpec []FolderItem `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func (l legacyFolderItem) toFolderItem() FolderItem {
+	items := l.Items
+	if len(items) == 0 {
+		items = l.LegacySpec
+	}
+	return FolderItem{Kind: l.Kind, Name: l.Name, Items: items}
+}
+
 func (f *FolderItem) UnmarshalJSON(data []byte) error {
-	var tmp FolderItem
-	type plain FolderItem
-	if err := json.Unmarshal(data, (*plain)(&tmp)); err != nil {
+	var raw legacyFolderItem
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
+	tmp := raw.toFolderItem()
 	if err := (&tmp).validate(); err != nil {
 		return err
 	}
@@ -49,11 +67,11 @@ func (f *FolderItem) UnmarshalJSON(data []byte) error {
 }
 
 func (f *FolderItem) UnmarshalYAML(unmarshal func(any) error) error {
-	var tmp FolderItem
-	type plain FolderItem
-	if err := unmarshal((*plain)(&tmp)); err != nil {
+	var raw legacyFolderItem
+	if err := unmarshal(&raw); err != nil {
 		return err
 	}
+	tmp := raw.toFolderItem()
 	if err := (&tmp).validate(); err != nil {
 		return err
 	}
@@ -77,6 +95,43 @@ func (f *FolderItem) validate() error {
 type FolderSpec struct {
 	Display *FolderDisplay `json:"display,omitempty" yaml:"display,omitempty"`
 	Items   []FolderItem   `json:"items,omitempty" yaml:"items,omitempty"`
+}
+
+// UnmarshalJSON also accepts the previous folder format, where `spec` was the list of items
+// itself rather than an object. Folders stored in that format are still in some databases,
+// and they are written back in the current format the next time they are saved.
+func (s *FolderSpec) UnmarshalJSON(data []byte) error {
+	if trimmed := bytes.TrimSpace(data); len(trimmed) > 0 && trimmed[0] == '[' {
+		var items []FolderItem
+		if err := json.Unmarshal(trimmed, &items); err != nil {
+			return err
+		}
+		*s = FolderSpec{Items: items}
+		return nil
+	}
+	var tmp FolderSpec
+	type plain FolderSpec
+	if err := json.Unmarshal(data, (*plain)(&tmp)); err != nil {
+		return err
+	}
+	*s = tmp
+	return nil
+}
+
+// UnmarshalYAML accepts both folder formats, see UnmarshalJSON.
+func (s *FolderSpec) UnmarshalYAML(unmarshal func(any) error) error {
+	var items []FolderItem
+	if err := unmarshal(&items); err == nil {
+		*s = FolderSpec{Items: items}
+		return nil
+	}
+	var tmp FolderSpec
+	type plain FolderSpec
+	if err := unmarshal((*plain)(&tmp)); err != nil {
+		return err
+	}
+	*s = tmp
+	return nil
 }
 
 type Folder struct {

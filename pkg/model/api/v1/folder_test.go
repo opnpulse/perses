@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 func TestUnmarshalFolderError(t *testing.T) {
@@ -305,4 +306,83 @@ func TestUnmarshalFolderSuccess(t *testing.T) {
 			assert.Equal(t, test.expected, result)
 		})
 	}
+}
+
+// Folders stored before the format change have `spec` as the list of items, with sub-folder
+// children under `spec` too. They must still decode, into the current format.
+func TestUnmarshalLegacyFolder(t *testing.T) {
+	expected := Folder{
+		Kind: KindFolder,
+		Metadata: ProjectMetadata{
+			Metadata: Metadata{
+				Name: "test",
+			},
+			ProjectMetadataWrapper: ProjectMetadataWrapper{
+				Project: "perses",
+			},
+		},
+		Spec: FolderSpec{
+			Items: []FolderItem{
+				{Kind: KindDashboard, Name: "dash1"},
+				{
+					Kind: KindFolder,
+					Name: "sub",
+					Items: []FolderItem{
+						{Kind: KindDashboard, Name: "dash2"},
+					},
+				},
+			},
+		},
+	}
+
+	t.Run("json", func(t *testing.T) {
+		legacy := `
+{
+  "kind": "Folder",
+  "metadata": {
+    "name": "test",
+    "project": "perses"
+  },
+  "spec": [
+    {"kind": "Dashboard", "name": "dash1"},
+    {"kind": "Folder", "name": "sub", "spec": [{"kind": "Dashboard", "name": "dash2"}]}
+  ]
+}
+`
+		var result Folder
+		assert.NoError(t, json.Unmarshal([]byte(legacy), &result))
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("yaml", func(t *testing.T) {
+		legacy := `
+kind: Folder
+metadata:
+  name: test
+  project: perses
+spec:
+  - kind: Dashboard
+    name: dash1
+  - kind: Folder
+    name: sub
+    spec:
+      - kind: Dashboard
+        name: dash2
+`
+		var result Folder
+		assert.NoError(t, yaml.Unmarshal([]byte(legacy), &result))
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("re-encoded in the current format", func(t *testing.T) {
+		data, err := json.Marshal(expected.Spec)
+		assert.NoError(t, err)
+		assert.JSONEq(t, `{"items":[{"kind":"Dashboard","name":"dash1"},{"kind":"Folder","name":"sub","items":[{"kind":"Dashboard","name":"dash2"}]}]}`, string(data))
+	})
+
+	t.Run("legacy format still validated", func(t *testing.T) {
+		legacy := `{"kind":"Folder","metadata":{"name":"test","project":"perses"},"spec":[{"kind":"Dashboard","name":"d"},{"kind":"Dashboard","name":"d"}]}`
+		var result Folder
+		assert.Equal(t, fmt.Errorf("dashboard %q is referenced multiple times in the folder %q", "d", "test"), json.Unmarshal([]byte(legacy), &result))
+	})
 }

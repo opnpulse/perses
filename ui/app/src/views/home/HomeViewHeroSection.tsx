@@ -114,7 +114,7 @@ export function HomeViewHeroSection({
                 sx={{ alignSelf: 'flex-start', bgcolor: (theme) => alpha(theme.palette.background.paper, 0.5) }}
               />
               <Typography variant="h2" sx={{ fontWeight: 700, maxWidth: 16 * 28 }}>
-                Pick up where you left off in Perses.
+                Pick up where you left off in Observe.
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6, maxWidth: 16 * 42 }}>
                 Create a project, start a new dashboard, or jump back into the views that matter most to your team.

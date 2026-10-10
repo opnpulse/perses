@@ -86,7 +86,7 @@ export function useDatasource(name: string, project: string): UseQueryResult<Dat
   const owner = useActiveUser();
 
   return useQuery<DatasourceResource, StatusError>({
-    queryKey: buildQueryKey({ resource, name, parent: project }),
+    queryKey: [...buildQueryKey({ resource, name, parent: project }), owner],
     queryFn: () => {
       return getDatasource(owner, name, project);
     },
@@ -101,7 +101,7 @@ export function useDatasourceList(options: DatasourceListOptions): UseQueryResul
   const owner = useActiveUser();
 
   return useQuery<DatasourceResource[], StatusError>({
-    queryKey: buildQueryKey({ resource, parent: options.project }),
+    queryKey: [...buildQueryKey({ resource, parent: options.project }), owner],
     queryFn: () => {
       return getDatasources(owner, options.project);
     },

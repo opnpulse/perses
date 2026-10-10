@@ -68,7 +68,7 @@ export function useDashboard(
   const owner = useActiveUser();
 
   return useQuery<DashboardResource, StatusError>({
-    queryKey: [resource, project, folder, name],
+    queryKey: [resource, project, folder, name, owner],
     queryFn: () => {
       return getDashboard(owner, project, folder, name);
     },
@@ -83,7 +83,7 @@ export function useDashboardList(options: DashboardListOptions): UseQueryResult<
   const owner = useActiveUser();
 
   return useQuery<DashboardResource[], StatusError>({
-    queryKey: [resource, options.project, options.metadataOnly],
+    queryKey: [resource, options.project, options.metadataOnly, owner],
     queryFn: () => {
       return getDashboards(owner, options.project, options.metadataOnly);
     },
@@ -100,7 +100,7 @@ export function useFolderBasedDashboardList(
   const owner = useActiveUser();
 
   return useQuery<DashboardResource[], StatusError>({
-    queryKey: [resource, project, folder],
+    queryKey: [resource, project, folder, owner],
     queryFn: () => {
       return getDashboardsByFolder(owner, project, folder);
     },

@@ -75,7 +75,7 @@ export function useSecret(name: string, project: string): UseQueryResult<SecretR
   const owner = useActiveUser();
 
   return useQuery<SecretResource, StatusError>({
-    queryKey: buildQueryKey({ resource, name, parent: project }),
+    queryKey: [...buildQueryKey({ resource, name, parent: project }), owner],
     queryFn: () => {
       return getSecret(owner, name, project);
     },
@@ -91,7 +91,7 @@ export function useSecretList(project?: string): UseQueryResult<SecretResource[]
   const owner = useActiveUser();
 
   return useQuery<SecretResource[], StatusError>({
-    queryKey: buildQueryKey({ resource, parent: project }),
+    queryKey: [...buildQueryKey({ resource, parent: project }), owner],
     queryFn: () => {
       return getSecrets(owner, project);
     },

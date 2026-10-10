@@ -34,7 +34,7 @@ export interface FolderListOptions {
 export function useFolderList(options: FolderListOptions): UseQueryResult<FolderWithDashboards[], StatusError> {
   const owner = useActiveUser();
   return useQuery<FolderWithDashboards[], StatusError>({
-    queryKey: [resource, options.project],
+    queryKey: [resource, options.project, owner],
     queryFn: () => getFolders(owner, options.project),
   });
 }

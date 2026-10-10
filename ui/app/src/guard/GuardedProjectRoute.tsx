@@ -37,7 +37,7 @@ function GuardedProjectRoute(): ReactElement {
         throw err;
       })
     );
-  }, [exceptionSnackbar, navigate, projectName]);
+  }, [exceptionSnackbar, navigate, owner, projectName]);
 
   return (
     <Suspense fallback={<LinearProgress />}>

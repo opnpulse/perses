@@ -96,7 +96,7 @@ export function useProject(name: string): UseQueryResult<ProjectResource, Status
   const owner = useActiveUser();
 
   return useQuery<ProjectResource, StatusError>({
-    queryKey: [resource, name],
+    queryKey: [resource, name, owner],
     queryFn: () => {
       return getProject(owner, name);
     },
@@ -113,7 +113,7 @@ export function useProjectList(options?: ProjectListOptions): UseQueryResult<Pro
   const owner = useActiveUser();
 
   return useQuery<ProjectResource[], StatusError>({
-    queryKey,
+    queryKey: [...queryKey, owner],
     queryFn: () => getProjects(owner),
     ...options,
   });

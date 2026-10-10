@@ -75,7 +75,7 @@ export function useVariable(name: string, project: string): UseQueryResult<Varia
   const owner = useActiveUser();
 
   return useQuery<VariableResource, StatusError>({
-    queryKey: buildQueryKey({ resource, name, parent: project }),
+    queryKey: [...buildQueryKey({ resource, name, parent: project }), owner],
     queryFn: () => {
       return getVariable(owner, name, project);
     },
@@ -90,7 +90,7 @@ export function useVariableList(project?: string): UseQueryResult<VariableResour
   const owner = useActiveUser();
 
   return useQuery<VariableResource[], StatusError>({
-    queryKey: buildQueryKey({ resource, parent: project }),
+    queryKey: [...buildQueryKey({ resource, parent: project }), owner],
     queryFn: () => {
       return getVariables(owner, project);
     },

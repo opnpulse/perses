@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 import { useQueryParam } from 'use-query-params';
 import buildURL from '../url-builder';
 import { HTTPHeader, HTTPMethodGET, HTTPMethodPOST } from '../http';
-import { useBrandingFromCache } from './branding-client';
+import { useBrandingFromCache } from '../branding-client';
 import { activeOrganization } from '../../constants/auth-token';
 import { useCurrentUser } from '../user-client';
 

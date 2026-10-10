@@ -26,7 +26,7 @@ import { SearchBar } from './SearchBar/SearchBar';
 import BrandLogo from '../logo/BrandLogo';
 import { AppDrawer } from './AppDrawer';
 import { useCookies } from 'react-cookie';
-import { useShowBilling } from '../../model/auth-client';
+import { useShowBilling } from '../../model/auth/auth-client';
 import { activeOrganization } from '../../constants/auth-token';
 
 export default function Header(): JSX.Element {

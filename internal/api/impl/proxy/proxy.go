@@ -14,6 +14,7 @@
 package proxy
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"database/sql"
@@ -270,6 +271,11 @@ func (h *httpProxy) serve(c echo.Context) error {
 		}
 	}
 
+	if err := makeBodyReplayable(req); err != nil {
+		logrus.WithError(err).Error("unable to read the request body")
+		return apiinterface.InternalError
+	}
+
 	// redirect the request to the datasource
 	req.URL.Path = h.path
 	logrus.Debugf("request will be redirected to %q", h.config.URL.String())
@@ -299,6 +305,30 @@ func (h *httpProxy) serve(c echo.Context) error {
 			status = 500
 		}
 		return echo.NewHTTPError(status, proxyErr.Error())
+	}
+	return nil
+}
+
+// maxReplayableBodySize is the biggest request body that is buffered in memory to make the request replayable.
+const maxReplayableBodySize = 4 << 20
+
+// makeBodyReplayable defines req.GetBody for small bodies of known size.
+// Without it, the HTTP/2 transport cannot retry on a new connection when the upstream resets the stream
+// (e.g. PROTOCOL_ERROR on a stale connection) after the body has been written.
+// Large or unknown-size bodies are left untouched and stay streamed.
+func makeBodyReplayable(req *http.Request) error {
+	if req.Body == nil || req.Body == http.NoBody || req.GetBody != nil ||
+		req.ContentLength <= 0 || req.ContentLength > maxReplayableBodySize {
+		return nil
+	}
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return err
+	}
+	_ = req.Body.Close()
+	req.Body = io.NopCloser(bytes.NewReader(body))
+	req.GetBody = func() (io.ReadCloser, error) {
+		return io.NopCloser(bytes.NewReader(body)), nil
 	}
 	return nil
 }

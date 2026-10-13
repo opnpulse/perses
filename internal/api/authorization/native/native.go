@@ -462,13 +462,11 @@ func (n *native) loadAllPermissions() (usersPermissions, error) {
 }
 
 func loginWithAccessToken(ctx echo.Context, accessTokenDAO accesstoken.DAO, userDAO user.DAO) (*v1.User, error) {
-	err := ctx.Request().ParseForm()
-	if err != nil {
-		return nil, err
-	}
-	tokenSHA := ctx.Request().Form.Get("token")
+	// Read only the URL query: ParseForm would drain urlencoded POST bodies (e.g. Prometheus query_range),
+	// and the datasource proxy would then forward the original Content-Length with an empty body.
+	tokenSHA := ctx.QueryParam("token")
 	if len(tokenSHA) == 0 {
-		tokenSHA = ctx.Request().Form.Get("access_token")
+		tokenSHA = ctx.QueryParam("access_token")
 	}
 	if len(tokenSHA) == 0 {
 		// Well, check with header again.

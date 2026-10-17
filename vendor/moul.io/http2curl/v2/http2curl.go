@@ -81,3 +81,4 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 
 	return &command, nil
 }
+

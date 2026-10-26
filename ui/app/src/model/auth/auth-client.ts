@@ -30,6 +30,8 @@ const iLikeBytebuilders = 'i_like_bytebuilders';
 const redirectQueryParam = 'rd';
 const cookieRefreshTime = 500;
 const platformOrganizationsResource = '/api/v1/user/settings/organizations';
+const platformCSRFCookie = '_csrf';
+const platformCSRFHeader = 'X-Csrf-Token';
 
 export interface NativeAuthBody {
   login: string;
@@ -91,7 +93,6 @@ export function useIsAccessTokenExist(): boolean {
 
   return hasAuthCookie;
 }
-
 
 export function useRedirectQueryParam(): string {
   const [path] = useQueryParam<string | undefined>(redirectQueryParam);
@@ -185,24 +186,31 @@ export interface PlatformOrganization {
   orgType?: number;
 }
 
-export function usePlatformOrganizationList(): UseQueryResult<PlatformOrganization[] | null> {
+export function usePlatformOrganizationList(enabled: boolean): UseQueryResult<PlatformOrganization[] | null> {
+  const [cookies] = useCookies([platformCSRFCookie]);
+  const csrfToken: string | undefined = cookies[platformCSRFCookie];
+
   return useQuery<PlatformOrganization[] | null>({
     queryKey: [platformOrganizationsResource],
     queryFn: async () => {
-      const response = await getPlatformOrganizations();
+      const response = await getPlatformOrganizations(csrfToken);
       if (!response.ok) {
         throw new Error(`Failed to fetch platform organizations: ${response.statusText}`);
       }
       return response.json();
     },
+    // Only needed to decide whether to show billing, which is limited to offline installations.
+    enabled,
   });
 }
 
-export function getPlatformOrganizations(): Promise<Response> {
+export function getPlatformOrganizations(csrfToken?: string): Promise<Response> {
   const url = window.location.origin + platformOrganizationsResource;
+  // Platform rejects session-authenticated API calls without a CSRF token (401).
+  const headers = csrfToken ? { ...HTTPHeader, [platformCSRFHeader]: csrfToken } : HTTPHeader;
   return fetch(url, {
     method: HTTPMethodGET,
-    headers: HTTPHeader,
+    headers,
   });
 }
 
@@ -210,12 +218,14 @@ const BILLING_ORG_TYPE = 6;
 
 export function useShowBilling(): boolean {
   const [cookies] = useCookies([activeOrganization]);
-  const { data: organizations } = usePlatformOrganizationList();
   // Reuse the branding already loaded by the app rather than requesting it again.
   const branding = useBrandingFromCache();
 
   const activeOrg = cookies[activeOrganization];
-  if (!activeOrg || branding?.isOfflineInstaller !== true) {
+  const isOfflineInstaller = branding?.isOfflineInstaller === true;
+  const { data: organizations } = usePlatformOrganizationList(isOfflineInstaller && !!activeOrg);
+
+  if (!activeOrg || !isOfflineInstaller) {
     return false;
   }
   return (organizations ?? []).some((org) => org.username === activeOrg && org.orgType === BILLING_ORG_TYPE);

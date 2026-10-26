@@ -46,7 +46,7 @@ export function AccountMenu(): ReactElement {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openSwitch, setOpenSwitch] = useState(false);
-  const [cookies, setCookie] = useCookies([activeOrganization]);
+  const [, setCookie, removeCookie] = useCookies([activeOrganization]);
   const { data: user } = useUserApi();
   const { data: orgs } = useOrganizationList(user?.metadata?.name);
 
@@ -83,7 +83,10 @@ export function AccountMenu(): ReactElement {
     setOpenSwitch(!openSwitch);
   };
   const handleSwitchAccount = (accountId: string): void => {
-    setCookie(activeOrganization, accountId, { path: '/' });
+    // The platform stores activeOrganization on the root domain. Drop any host-only copy left by older
+    // versions (it shadows the shared one on reload), then overwrite the shared cookie itself.
+    removeCookie(activeOrganization, { path: '/' });
+    setCookie(activeOrganization, accountId, { path: '/', domain: window.location.hostname });
     setAnchorEl(null);
     if (pathname !== basePath) {
       navigate('/');

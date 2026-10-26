@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { StatusError } from '@perses-dev/client';
-import { refreshToken } from './auth/auth-client';
+import { PERSES_APP_CONFIG } from '../config';
 
 const JWT_COOKIES = ['jwtPayload', 'jwtSignature', 'jwtRefreshToken', 'activeOrganization'];
 
@@ -21,13 +21,21 @@ function deleteCookie(name: string): void {
   document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
 }
 
+// Only a 401 from the Perses API means the Perses session is gone. Other endpoints on the same origin
+// (e.g. Platform's /api/v1/...) can answer 401 for unrelated reasons, such as a missing CSRF token.
+function isPersesAPIRequest(input: Parameters<typeof globalThis.fetch>[0]): boolean {
+  const rawURL = input instanceof Request ? input.url : input.toString();
+  const url = new URL(rawURL, window.location.origin);
+  return url.origin === window.location.origin && url.pathname.startsWith(`${PERSES_APP_CONFIG.api_prefix}/api/`);
+}
+
 export function enableRefreshFetch(): void {
   globalThis.fetch = new Proxy(globalThis.fetch, {
     apply: async function (target, that, args: Parameters<typeof globalThis.fetch>): Promise<Response> {
       return target
         .apply(that, args)
         .then((res) => {
-          if (res.status === 401) {
+          if (res.status === 401 && isPersesAPIRequest(args[0])) {
             JWT_COOKIES.forEach(deleteCookie);
             return res;
           }

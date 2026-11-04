@@ -3,26 +3,27 @@
 // A jsonpath applies to any JSON decoded data using interface{} when
 // decoded with encoding/json (http://golang.org/pkg/encoding/json/) :
 //
-//	var bookstore interface{}
-//	err := json.Unmarshal(data, &bookstore)
-//	authors, err := jsonpath.Read(bookstore, "$..authors")
+//    var bookstore interface{}
+//    err := json.Unmarshal(data, &bookstore)
+//    authors, err := jsonpath.Read(bookstore, "$..authors")
 //
 // A jsonpath expression can be prepared to be reused multiple times :
 //
-//	allAuthors, err := jsonpath.Prepare("$..authors")
-//	...
-//	var bookstore interface{}
-//	err = json.Unmarshal(data, &bookstore)
-//	authors, err := allAuthors(bookstore)
+//    allAuthors, err := jsonpath.Prepare("$..authors")
+//    ...
+//    var bookstore interface{}
+//    err = json.Unmarshal(data, &bookstore)
+//    authors, err := allAuthors(bookstore)
 //
 // The type of the values returned by the `Read` method or `Prepare`
 // functions depends on the jsonpath expression.
 //
-// # Limitations
+// Limitations
 //
 // No support for subexpressions and filters.
 // Strings in brackets must use double quotes.
 // It cannot operate on JSON decoded struct fields.
+//
 package jsonpath
 
 import (

@@ -607,12 +607,12 @@ github.com/klauspost/pgzip
 # github.com/kylelemons/godebug v1.1.0
 ## explicit; go 1.11
 github.com/kylelemons/godebug/diff
-# github.com/labstack/echo/v4 v4.13.4
-## explicit; go 1.23.0
+# github.com/labstack/echo/v4 v4.16.3
+## explicit; go 1.26.0
 github.com/labstack/echo/v4
 github.com/labstack/echo/v4/middleware
-# github.com/labstack/gommon v0.4.2
-## explicit; go 1.18
+# github.com/labstack/gommon v0.5.0
+## explicit; go 1.23.0
 github.com/labstack/gommon/bytes
 github.com/labstack/gommon/color
 github.com/labstack/gommon/log
@@ -629,11 +629,11 @@ github.com/lucasb-eyer/go-colorful
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattn/go-colorable v0.1.14
+# github.com/mattn/go-colorable v0.1.15
 ## explicit; go 1.18
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.20
-## explicit; go 1.15
+# github.com/mattn/go-isatty v0.0.22
+## explicit; go 1.21
 github.com/mattn/go-isatty
 # github.com/mattn/go-localereader v0.0.2-0.20220822084749-2491eb6c1c75
 ## explicit
@@ -968,8 +968,8 @@ go.yaml.in/yaml/v3
 ## explicit; go 1.13
 go4.org/readerutil
 go4.org/syncutil
-# golang.org/x/crypto v0.41.0
-## explicit; go 1.23.0
+# golang.org/x/crypto v0.57.0
+## explicit; go 1.26.0
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/argon2
@@ -994,11 +994,11 @@ golang.org/x/crypto/ssh/knownhosts
 # golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b
 ## explicit; go 1.24.0
 golang.org/x/exp/slices
-# golang.org/x/mod v0.27.0
-## explicit; go 1.23.0
+# golang.org/x/mod v0.41.0
+## explicit; go 1.26.0
 golang.org/x/mod/semver
-# golang.org/x/net v0.42.0
-## explicit; go 1.23.0
+# golang.org/x/net v0.60.0
+## explicit; go 1.26.0
 golang.org/x/net/context
 golang.org/x/net/http/httpguts
 golang.org/x/net/http/httpproxy
@@ -1007,6 +1007,7 @@ golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/httpcommon
+golang.org/x/net/internal/httpsfv
 golang.org/x/net/internal/socks
 golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
@@ -1017,23 +1018,23 @@ golang.org/x/net/trace
 golang.org/x/oauth2
 golang.org/x/oauth2/clientcredentials
 golang.org/x/oauth2/internal
-# golang.org/x/sync v0.16.0
-## explicit; go 1.23.0
+# golang.org/x/sync v0.23.0
+## explicit; go 1.26.0
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.35.0
-## explicit; go 1.23.0
+# golang.org/x/sys v0.48.0
+## explicit; go 1.26.0
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
-# golang.org/x/term v0.34.0
-## explicit; go 1.23.0
+# golang.org/x/term v0.46.0
+## explicit; go 1.26.0
 golang.org/x/term
-# golang.org/x/text v0.28.0
-## explicit; go 1.23.0
+# golang.org/x/text v0.42.0
+## explicit; go 1.26.0
 golang.org/x/text/cases
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal
@@ -1052,8 +1053,8 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/time v0.12.0
-## explicit; go 1.23.0
+# golang.org/x/time v0.15.0
+## explicit; go 1.25.0
 golang.org/x/time/rate
 # google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822
 ## explicit; go 1.23.0

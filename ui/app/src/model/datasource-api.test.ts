@@ -15,6 +15,7 @@ import { buildProxyUrl } from './datasource-api';
 
 interface TestData {
   input: {
+    owner?: string;
     project?: string;
     dashboard?: string;
     name: string;
@@ -26,18 +27,18 @@ describe('buildProxyUrl', () => {
   test.each([
     {
       title: 'should build global datasource proxy url',
-      input: { name: 'datasourceA' },
-      expected: '/proxy/globaldatasources/datasourceA',
+      input: { owner: 'orgA', name: 'datasourceA' },
+      expected: '/proxy/owners/orgA/globaldatasources/datasourceA',
     },
     {
       title: 'should build project datasource proxy url',
-      input: { project: 'projectA', name: 'datasourceA' },
-      expected: '/proxy/projects/projectA/datasources/datasourceA',
+      input: { owner: 'orgA', project: 'projectA', name: 'datasourceA' },
+      expected: '/proxy/owners/orgA/projects/projectA/datasources/datasourceA',
     },
     {
       title: 'should build dashboard datasource proxy url',
-      input: { project: 'projectA', dashboard: 'dashboardA', name: 'datasourceA' },
-      expected: '/proxy/projects/projectA/dashboards/dashboardA/datasources/datasourceA',
+      input: { owner: 'orgA', project: 'projectA', dashboard: 'dashboardA', name: 'datasourceA' },
+      expected: '/proxy/owners/orgA/projects/projectA/dashboards/dashboardA/datasources/datasourceA',
     },
   ])('$title', (data: TestData) => {
     expect(buildProxyUrl(data.input)).toEqual(data.expected);

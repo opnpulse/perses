@@ -147,7 +147,7 @@ func New(conf config.Database) (databaseModel.DAO, error) {
 			)
 			sqlDriver = "postgres"
 			schemaName = "public"
-			fmt.Printf("Connecting to Postgres with DSN: %s\n", dsn)
+			logrus.Infof("connecting to Postgres at %s, database %q", addrStr, c.DBName)
 
 		case "mysql":
 			mysqlConfig := mysql.Config{

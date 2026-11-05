@@ -256,7 +256,7 @@ export function getDashboard(
 export function getDashboards(
   owner: string | undefined,
   project?: string,
-  metadataOnly: boolean = false
+  _metadataOnly: boolean = false
 ): Promise<DashboardResource[]> {
   const queryParams = new URLSearchParams();
 

@@ -37,6 +37,7 @@ import (
 	"github.com/perses/perses/internal/api/interface/v1/variable"
 	modelAPI "github.com/perses/perses/pkg/model/api"
 	modelV1 "github.com/perses/perses/pkg/model/api/v1"
+	"github.com/sirupsen/logrus"
 )
 
 func generateProjectResourceInsertQuery(tableName string, id string, rowJSONDoc []byte, metadata *modelV1.ProjectMetadata) (string, []any) {
@@ -96,7 +97,6 @@ func (d *DAO) generateInsertQuery(entity modelAPI.Entity) (string, []interface{}
 			return "", nil, err
 		}
 	}
-	fmt.Printf("projectID: %d\n", projectID)
 	switch entity.GetKind() {
 	case string(modelV1.KindUser):
 		userType := entity.GetMetadata().GetUserType()
@@ -272,24 +272,21 @@ func (d *DAO) generateSelectQueryWithUserID(tableName string, project string, na
 		if u != 0 {
 			metadata.UserID = u
 		}
-		fmt.Printf("generateSelectQueryWithUserID metadata: %+v\n", metadata)
 		projectID, rows, err := d.get(modelV1.KindProject, metadata)
 		defer rows.Close()
 		if err != nil {
-			fmt.Errorf("failed to get project by name: ProjectName: %s, UserID: %d, err: %+v\n", p, u, err)
+			logrus.WithError(err).Errorf("failed to get project by name: ProjectName: %s, UserID: %d", p, u)
 			return "", nil
 		}
 
 		if projectID == 0 {
-			fmt.Errorf("failed to get project by name for user: ProjectName: %s, UserID: %d err: %+v\n", p, u, err)
+			logrus.Warnf("project not found for user: ProjectName: %s, UserID: %d", p, u)
 
 		}
 
 		queryBuilder.Where(queryBuilder.Equal(colProjectID, projectID))
 	}
 
-	sql, _ := queryBuilder.Build()
-	fmt.Printf("sql: %s\n", sql)
 	return queryBuilder.Build()
 }
 
@@ -313,12 +310,12 @@ func (d *DAO) generateSelectQueryWithUserIDForDashboards(project string, name st
 		pId, rows, err := d.get(modelV1.KindProject, metadata)
 		defer rows.Close()
 		if err != nil {
-			fmt.Printf("failed to get project by name: ProjectName: %s, UserID: %d, err: %+v\n", p, u, err)
+			logrus.WithError(err).Errorf("failed to get project by name: ProjectName: %s, UserID: %d", p, u)
 			return "", nil
 		}
 
 		if pId == 0 {
-			fmt.Printf("failed to get project by name for user: ProjectName: %s, UserID: %d\n", p, u)
+			logrus.Warnf("project not found for user: ProjectName: %s, UserID: %d", p, u)
 			return "", nil
 		}
 		projectID = pId
@@ -346,7 +343,7 @@ func (d *DAO) generateSelectQueryWithUserIDForDashboards(project string, name st
 	q, args := folderQuery.Build()
 	rows, runQueryErr := d.DB.Query(q, args...)
 	if runQueryErr != nil {
-		fmt.Printf("failed to run folder query: %s, err: %+v\n", q, runQueryErr)
+		logrus.WithError(runQueryErr).Errorf("failed to run folder query: %s", q)
 		return "", nil
 	}
 	defer rows.Close()
@@ -355,7 +352,7 @@ func (d *DAO) generateSelectQueryWithUserIDForDashboards(project string, name st
 	for rows.Next() {
 		var id int64
 		if err := rows.Scan(&id); err != nil {
-			fmt.Printf("failed to scan folder row: %+v\n", err)
+			logrus.WithError(err).Error("failed to scan folder row")
 			continue
 		}
 		folderIDs = append(folderIDs, id)
@@ -378,7 +375,6 @@ func (d *DAO) generateSelectQueryWithUserIDForDashboards(project string, name st
 	}
 
 	sql, args := queryBuilder.Build()
-	fmt.Printf("sql: %s args: %v\n", sql, args)
 	return sql, args
 }
 
@@ -411,7 +407,6 @@ func (d *DAO) generateSelectAllOrgsOfAUserQuery(name string) (string, []any) {
 		Where(queryBuilder.Equal(orgAlias+"."+colType, "org"))
 
 	query, args := queryBuilder.Build()
-	fmt.Printf("query: %s\n", query)
 	return query, args
 }
 

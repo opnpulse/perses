@@ -21,7 +21,6 @@ export const resource: string = 'folders' as const;
 
 export interface FolderWithDashboards extends FolderResource {
   dashboards: DashboardResource[];
-  spec: any;
 }
 
 export interface FolderListOptions {

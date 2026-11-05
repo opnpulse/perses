@@ -18,13 +18,9 @@ import CodeJsonIcon from 'mdi-material-ui/CodeJson';
 import DatabaseIcon from 'mdi-material-ui/Database';
 import FolderIcon from 'mdi-material-ui/Folder';
 import KeyIcon from 'mdi-material-ui/Key';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getResourceDisplayName, getResourceExtendedDisplayName, useSnackbar } from '@perses-dev/components';
-import {
-  DatasourceResource,
-  VariableResource,
-  SecretResource,
-} from '@perses-dev/client';
+import { DatasourceResource, VariableResource, SecretResource } from '@perses-dev/client';
 import { DashboardSelector } from '@perses-dev/spec';
 import { CRUDButton, CRUDButtonProps } from '../../components/CRUDButton/CRUDButton';
 import { CreateDashboardDialog, CreateFolderDialog } from '../../components/dialogs';
@@ -39,11 +35,11 @@ import { SecretDrawer } from '../../components/secrets/SecretDrawer';
 import { useCreateSecretMutation, useSecretList } from '../../model/secret-client';
 import { useHasPermission } from '../../context/Authorization';
 import { useDashboardList } from '../../model/dashboard-client';
+import { useFolderList } from '../../model/folder-client';
 import { ProjectDashboards } from './tabs/ProjectDashboards';
 import { ProjectVariables } from './tabs/ProjectVariables';
 import { ProjectDatasources } from './tabs/ProjectDatasources';
 import { ProjectSecrets } from './tabs/ProjectSecrets';
-import { useFolderList } from '../../model/folder-client';
 import { ProjectFolders } from './tabs/ProjectFolders';
 
 const foldersTabIndex = 'folders';
@@ -72,7 +68,7 @@ function TabButton({ index, projectName, ...props }: TabButtonProps): ReactEleme
   const [isVariableDrawerOpened, setVariableDrawerOpened] = useState(false);
 
   const isReadonly = useIsReadonly();
-  const { data: folders = [], isLoading } = useFolderList({ project: projectName });
+  const { data: folders = [] } = useFolderList({ project: projectName });
 
   const handleDashboardCreation = (dashboardSelector: DashboardSelector): void => {
     navigate(`/projects/${dashboardSelector.project}/folders/${dashboardSelector.folder}/dashboard/new`, {
@@ -294,7 +290,6 @@ interface DashboardVariableTabsProps {
 
 export function ProjectTabs(props: DashboardVariableTabsProps): ReactElement {
   const { projectName, initialTab } = props;
-  const { tab } = useParams();
   const isProjectDatasourceEnabled = useIsProjectDatasourceEnabled();
   const isProjectVariableEnabled = useIsProjectVariableEnabled();
 

@@ -119,6 +119,11 @@ func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Publ
 }
 
 func (s *service) List(q *secret.Query) ([]*v1.PublicSecret, error) {
+	// Secrets are always scoped to a project. Without a resolved project the query would not be
+	// filtered by owner/project and would return the secrets of every user, so return nothing.
+	if q.ProjectID == 0 {
+		return []*v1.PublicSecret{}, nil
+	}
 	l, err := s.dao.List(q)
 	if err != nil {
 		return nil, err
@@ -135,9 +140,15 @@ func (s *service) RawList(_ *secret.Query) ([]json.RawMessage, error) {
 }
 
 func (s *service) MetadataList(q *secret.Query) ([]api.Entity, error) {
+	if q.ProjectID == 0 {
+		return []api.Entity{}, nil
+	}
 	return s.dao.MetadataList(q)
 }
 
 func (s *service) RawMetadataList(q *secret.Query) ([]json.RawMessage, error) {
+	if q.ProjectID == 0 {
+		return []json.RawMessage{}, nil
+	}
 	return s.dao.RawMetadataList(q)
 }

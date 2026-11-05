@@ -107,7 +107,6 @@ func (e *endpoint) getProjectDatasource(ownerName, projectName string, name stri
 func (e *endpoint) getProjectSecret(ownerName, projectName string, dtsName string, name string) (*v1.SecretSpec, error) {
 	// Fix me: use ProjectID
 	project, err := e.project.GetByNameAndUser(projectName, ownerName)
-	fmt.Printf("getProjectDatasource project: %+v\n", project)
 	if err != nil {
 		return nil, err
 	}

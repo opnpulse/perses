@@ -120,6 +120,11 @@ func (s *service) GetByNameAndUser(parameters apiInterface.Parameters) (*v1.Data
 }
 
 func (s *service) List(q *datasource.Query) ([]*v1.Datasource, error) {
+	// Datasources are always scoped to a project. Without a resolved project the query would not be
+	// filtered by owner/project and would return the datasources of every user, so return nothing.
+	if q.ProjectID == 0 {
+		return []*v1.Datasource{}, nil
+	}
 	dtsList, err := s.dao.List(q)
 	if err != nil {
 		return nil, err

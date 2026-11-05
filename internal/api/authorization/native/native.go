@@ -189,7 +189,6 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 
 			var persesUser *v1.User
 			user, err := loginWithAceCookie(c.Request())
-			fmt.Println("user++++++++++++++++: %+v", user)
 			if err != nil || user == nil {
 				persesUser, err = loginWithAccessToken(c, n.accessTokenDAO, n.userDAO)
 				if err != nil {
@@ -201,7 +200,6 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 
 			} else {
 				persesUser, err = n.userDAO.Get(user.UserName)
-				fmt.Println("fsbhfds+++++ %+v", persesUser)
 				if err != nil {
 					return c.JSON(http.StatusUnauthorized, map[string]string{
 						"error": "unauthorized",
@@ -527,14 +525,10 @@ func loginWithAccessToken(ctx echo.Context, accessTokenDAO accesstoken.DAO, user
 			return nil, err
 		}
 
-		fmt.Printf("loginWithAccessToken: %+v\n", t)
-
 		user, err := userDAO.GetByID(t.UID)
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Printf("user: %+v\n", user)
 
 		return user, nil
 	}

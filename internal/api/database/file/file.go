@@ -49,7 +49,6 @@ type DAO struct {
 func (d *DAO) GetAccessTokenBySHA(sha string) ([]modelV1.AccessToken, error) {
 	//TODO implement me
 	panic("implement me")
-	return nil, nil
 }
 
 func (d *DAO) GetById(kind modelV1.Kind, id int64, entity modelAPI.Entity) error {

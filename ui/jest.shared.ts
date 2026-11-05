@@ -32,9 +32,10 @@ const config: Config.InitialOptions = {
     // Use polyfill for jsdom environment
     '^use-resize-observer$': 'use-resize-observer/polyfilled',
 
-    // Tell Jest where other Perses packages live since it doesn't know about project references.
-    // Exclude `spec` and `dashboards` since they live outside of the perses/ui workspace.
-    '^@perses-dev/(?!spec|dashboards|components|client)(.*)$': '<rootDir>/../$1/src',
+    // Tell Jest where workspace-local Perses packages live since it doesn't know about project references.
+    // Only `internal-utils` is still a source workspace here; every other `@perses-dev/*` package
+    // (client, components, plugin-system, explore, spec, dashboards) is consumed from node_modules.
+    '^@perses-dev/internal-utils$': '<rootDir>/../internal-utils/src',
 
     // Configure Jest to handle stylesheets
     '\\.(css|less)$': '<rootDir>/../stylesMock.js',

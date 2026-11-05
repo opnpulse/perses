@@ -8,6 +8,12 @@ declare module '@perses-dev/client' {
     folder?: string;
     folderName?: string;
   }
+
+  // The observe backend scopes datasource proxy URLs by owner (organization):
+  // /proxy/owners/<owner>/projects/<project>/datasources/<name>
+  interface BuildDatasourceProxyUrlParams {
+    owner?: string;
+  }
 }
 
 declare module '@perses-dev/spec' {

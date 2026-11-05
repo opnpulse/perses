@@ -1,25 +1,32 @@
-import { IconButton, Link } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
-import { Card, CardProps, Box, Accordion, AccordionSummary, Stack, AccordionDetails } from '@mui/material';
+import {
+  IconButton,
+  Card,
+  CardProps,
+  Box,
+  Accordion,
+  AccordionSummary,
+  Stack,
+  AccordionDetails,
+  Typography,
+} from '@mui/material';
 import { ReactElement, MouseEvent, useState } from 'react';
+import { FolderResource } from '@perses-dev/client';
+import ChevronDown from 'mdi-material-ui/ChevronDown';
+import DeleteOutline from 'mdi-material-ui/DeleteOutline';
+import FolderIcon from 'mdi-material-ui/Folder';
+import { useSnackbar } from '@perses-dev/components';
 import {
   useFolderList,
   FolderWithDashboards,
   useDeleteFolderMutation,
   useUpdateFolderMutation,
 } from '../../../model/folder-client';
-import { FolderResource } from '@perses-dev/client';
 import { useIsEphemeralDashboardEnabled, useIsReadonly } from '../../../context/Config';
-import { ChevronDown, DeleteOutline, Pencil } from 'mdi-material-ui';
-import FolderIcon from 'mdi-material-ui/Folder';
 
 import { DashboardList } from '../../../components/DashboardList/DashboardList';
-import { useHasPermission } from '../../../context/Authorization';
 import { DeleteResourceDialog } from '../../../components/dialogs';
-import { useSnackbar } from '@perses-dev/components';
 import { UpdateFolderDialog } from '../../../components/dialogs/UpdateFolderDialog';
 import { useFolderBasedDashboardList } from '../../../model/dashboard-client';
-import { Typography } from '@mui/material';
 
 interface FolderAccordionProps {
   folder: FolderWithDashboards;
@@ -43,18 +50,13 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
     setIsDeleteFolderDialogOpen(true);
   }
 
-  function openEditDialog($event: MouseEvent): void {
-    $event.stopPropagation();
-    setIsEditFolderDialogOpen(true);
-  }
-
   function handleFolderDelete(folder: FolderWithDashboards): void {
     deleteFolderMutation.mutate(folder, {
       onSuccess: (deletedFolder: FolderResource): void => {
         successSnackbar(`Folder ${deletedFolder.metadata.name} has been successfully deleted`);
         setIsDeleteFolderDialogOpen(false);
       },
-      onError: (err: any) => {
+      onError: (err) => {
         exceptionSnackbar(err);
         throw err;
       },
@@ -69,7 +71,7 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
           successSnackbar(`Folder ${updatedFolder.metadata.name} has been successfully updated`);
           setIsEditFolderDialogOpen(false);
         },
-        onError: (err: any) => {
+        onError: (err) => {
           exceptionSnackbar(err);
         },
       }
@@ -134,7 +136,12 @@ interface ProjectFoldersProps extends CardProps {
   hideToolbar?: boolean;
 }
 
-export function ProjectFolders({ projectName, hideToolbar, ...props }: ProjectFoldersProps): ReactElement {
+// hideToolbar is accepted for API compatibility but not forwarded to the Card.
+export function ProjectFolders({
+  projectName,
+  hideToolbar: _hideToolbar,
+  ...props
+}: ProjectFoldersProps): ReactElement {
   const { data: folders = [], isLoading } = useFolderList({ project: projectName });
 
   if (folders.length === 0) {

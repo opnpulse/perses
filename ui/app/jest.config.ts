@@ -1,3 +1,4 @@
+/** @jest-config-loader ts-node */
 // Copyright The Perses Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Force ts-node: on Node >= 22.18 Jest would otherwise load this file through Node's native type
+// stripping as ESM, which cannot resolve the extensionless '../jest.shared' import nor `__dirname`.
 import shared from '../jest.shared';
 
 export default shared;

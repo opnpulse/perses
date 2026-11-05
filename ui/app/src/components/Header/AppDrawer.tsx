@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReactElement, useMemo, useState, MouseEvent } from 'react';
+import { ReactElement, useCallback, useMemo, useState, MouseEvent } from 'react';
 import { IconButton, Menu, MenuItem, Box, Typography, Avatar, ListItemText, ListItemIcon } from '@mui/material';
 import ViewGrid from 'mdi-material-ui/ViewGrid';
 import { useCookies } from 'react-cookie';
@@ -112,15 +112,18 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
     return list;
   }, [activeOrgType]);
 
-  const getUrl = (product: (typeof DEFAULT_APPS)[0]) => {
-    if (baseUrl.includes('bb.test')) {
-      return `http://bb.test:${product.port}/${product.name}/`;
-    }
-    if (baseUrl.includes('localhost')) {
-      return `http://localhost:${product.port}/${product.name}/`;
-    }
-    return `${baseUrl}/${product.name}/`;
-  };
+  const getUrl = useCallback(
+    (product: (typeof DEFAULT_APPS)[0]): string => {
+      if (baseUrl.includes('bb.test')) {
+        return `http://bb.test:${product.port}/${product.name}/`;
+      }
+      if (baseUrl.includes('localhost')) {
+        return `http://localhost:${product.port}/${product.name}/`;
+      }
+      return `${baseUrl}/${product.name}/`;
+    },
+    [baseUrl]
+  );
 
   const isSelfHosted = useMemo(() => {
     const list = ['https://appscode.ninja', 'https://appscode.com', 'http://bb.test:8080'];
@@ -140,9 +143,9 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
         ...app,
         url: getUrl(app),
       }));
-  }, [appList, currentApp, isSelfHosted, baseUrl, showBilling]);
+  }, [appList, currentApp, isSelfHosted, getUrl, showBilling]);
 
-  const handleClick = (name: string) => {
+  const handleClick = (name: string): void => {
     if (name === 'grafana') {
       setCookie('gorg', activeOrganization, { domain: rootDomain, path: '/' });
     }
@@ -223,7 +226,11 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
               <ListItemText
                 primary={<Typography sx={{ fontWeight: 600 }}>{app.title}</Typography>}
                 secondary={
-                  <Typography variant="body2" color="text.secondary" sx={{ display: 'block', wordBreak: 'break-word', whiteSpace: 'normal' }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ display: 'block', wordBreak: 'break-word', whiteSpace: 'normal' }}
+                  >
                     {app.sub_title}
                   </Typography>
                 }

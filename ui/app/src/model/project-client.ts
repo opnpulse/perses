@@ -225,7 +225,6 @@ function mergeQueryResults(first: UseQueryResult, ...others: UseQueryResult[]): 
 }
 
 export function useProjectsWithDashboards(): UseQueryResult<ProjectWithDashboards[], StatusError> {
-  const owner = useActiveUser();
   const projectsQueryResult = useProjectList();
   const dashboardsQueryResult = useDashboardList({ project: undefined, metadataOnly: true });
 

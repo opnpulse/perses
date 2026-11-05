@@ -12,39 +12,26 @@
 // limitations under the License.
 
 import { Link as RouterLink } from 'react-router-dom';
-import { AppBar, Box, Button, Divider, Toolbar } from '@mui/material';
+import { AppBar, Box, Button, Toolbar } from '@mui/material';
+import { useCookies } from 'react-cookie';
 import { useIsLaptopSize, useIsMobileSize } from '../../utils/browser-size';
-import { AdminRoute, ConfigRoute } from '../../model/route';
-import { useIsAuthEnabled, useIsExplorerEnabled } from '../../context/Config';
-import { GlobalProject, useHasPartialPermission } from '../../context/Authorization';
+import { useIsAuthEnabled } from '../../context/Config';
 import ObserveLabel from '../logo/ObserveLabel';
 import { BannerInfo } from '../BannerInfo';
-import { ToolMenu } from './ToolMenu';
+import BrandLogo from '../logo/BrandLogo';
+import { useShowBilling } from '../../model/auth/auth-client';
+import { activeOrganization } from '../../constants/auth-token';
 import { AccountMenu } from './AccountMenu';
 import { ThemeSwitch } from './ThemeSwitch';
 import { SearchBar } from './SearchBar/SearchBar';
-import BrandLogo from '../logo/BrandLogo';
 import { AppDrawer } from './AppDrawer';
-import { useCookies } from 'react-cookie';
-import { useShowBilling } from '../../model/auth/auth-client';
-import { activeOrganization } from '../../constants/auth-token';
 
 export default function Header(): JSX.Element {
   const isLaptopSize = useIsLaptopSize();
   const isMobileSize = useIsMobileSize();
   const isAuthEnabled = useIsAuthEnabled();
-  const IsExplorerEnabled = useIsExplorerEnabled();
   const [cookies] = useCookies([activeOrganization]);
   const showBilling = useShowBilling();
-
-  const hasPartialPermission = useHasPartialPermission(['read'], GlobalProject, [
-    'GlobalDatasource',
-    'GlobalRole',
-    'GlobalRoleBinding',
-    'GlobalSecret',
-    'GlobalVariable',
-    'User',
-  ]);
 
   return (
     <AppBar position="relative">
@@ -92,9 +79,7 @@ export default function Header(): JSX.Element {
             gap: 1,
           }}
         >
-          {isAuthEnabled && (
-            <AppDrawer activeOrganization={cookies[activeOrganization]} showBilling={showBilling} />
-          )}
+          {isAuthEnabled && <AppDrawer activeOrganization={cookies[activeOrganization]} showBilling={showBilling} />}
           {isAuthEnabled ? <AccountMenu /> : <ThemeSwitch isAuthEnabled={false} />}
         </Box>
       </Toolbar>

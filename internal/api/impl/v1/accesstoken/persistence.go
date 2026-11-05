@@ -70,8 +70,6 @@ func (d *dao) Get(token string) (*v1.AccessToken, error) {
 		return nil, err
 	}
 
-	fmt.Printf("get access token rows = %+v\n", rows)
-
 	// Verify hash
 	for _, accessToken := range rows {
 		tempHash := hashToken(token, accessToken.TokenSalt)

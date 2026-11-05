@@ -12,17 +12,7 @@
 // limitations under the License.
 
 import { Dispatch, DispatchWithoutAction, ReactElement, useEffect, useState } from 'react';
-import {
-  Autocomplete,
-  Button,
-  Chip,
-  CircularProgress,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  Switch,
-  TextField,
-} from '@mui/material';
+import { Autocomplete, Button, Chip, CircularProgress, MenuItem, Stack, TextField } from '@mui/material';
 import { Dialog, getResourceDisplayName } from '@perses-dev/components';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,10 +49,10 @@ interface CreateDashboardProps {
  * @param props.isEphemeralDashboardEnabled Display switch button if ephemeral dashboards are enabled in copy dialog.
  */
 export const CreateDashboardDialog = (props: CreateDashboardProps): ReactElement => {
-  const { open, projects, folders, hideProjectSelect, mode, name, onClose, onSuccess, isEphemeralDashboardEnabled } =
-    props;
+  const { open, projects, folders, hideProjectSelect, mode, name, onClose, onSuccess } = props;
 
-  const [isTempCopyChecked, setTempCopyChecked] = useState<boolean>(false);
+  // The "temporary copy" switch is hidden in observe, so this always renders the regular duplication form.
+  const [isTempCopyChecked] = useState<boolean>(false);
   const action = mode === 'duplicate' ? 'Duplicate' : 'Create';
 
   // Disables closing on click out. This is a quick-win solution to make sure the currently-existing form
@@ -148,7 +138,7 @@ const DashboardDuplicationForm = (props: DuplicationFormProps): ReactElement => 
       dashboardForm.clearErrors('dashboardName');
       setIsFormValid(true);
     }
-  }, [dashboards, dashboardName, projectName, folderName]);
+  }, [dashboards, dashboardName, projectName, folderName, dashboardForm]);
 
   const handleProcessDashboardForm: SubmitHandler<CreateDashboardValidationType> = (data) => {
     onClose();

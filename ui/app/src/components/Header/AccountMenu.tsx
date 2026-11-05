@@ -23,6 +23,7 @@ import {
   ListItemButton,
   ListItemText,
   Box,
+  Typography,
 } from '@mui/material';
 import AccountCircle from 'mdi-material-ui/AccountCircle';
 import AccountBox from 'mdi-material-ui/AccountBox';
@@ -31,14 +32,13 @@ import ExpandLess from 'mdi-material-ui/ChevronUp';
 import ExpandMore from 'mdi-material-ui/ChevronDown';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
+import CheckIcon from 'mdi-material-ui/Check';
 import { useActiveUser, useOrganizationList, useUserApi } from '../../model/auth/auth-client';
 import { LoginUrl, LogoutUrl, ProfileRoute } from '../../model/route';
 import { HTTPHeader, HTTPMethodGET } from '../../model/http';
 import { PERSES_APP_CONFIG } from '../../config';
-import { ThemeSwitch } from './ThemeSwitch';
 import { activeOrganization } from '../../constants/auth-token';
-import { Typography } from '@mui/material';
-import CheckIcon from 'mdi-material-ui/Check';
+import { ThemeSwitch } from './ThemeSwitch';
 
 export function AccountMenu(): ReactElement {
   const owner = useActiveUser();
@@ -65,7 +65,7 @@ export function AccountMenu(): ReactElement {
       : [];
 
     const orgAccounts =
-      orgs?.map((org: any) => ({
+      orgs?.map((org) => ({
         ...org,
         user_type: 'org',
       })) ?? [];
@@ -103,7 +103,7 @@ export function AccountMenu(): ReactElement {
 
   const currentAccount = accounts.find((acc) => acc.metadata?.name === owner);
 
-  const getAccountTypeLabel = (userType: string) => {
+  const getAccountTypeLabel = (userType: string): string => {
     return userType === 'user' ? 'Personal Account' : 'Organization';
   };
 

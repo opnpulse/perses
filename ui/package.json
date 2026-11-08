@@ -28,6 +28,7 @@
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.15.33",
     "@swc/jest": "^0.2.39",
+    "@tanstack/hotkeys": "^0.8.0",
     "@testing-library/dom": "^10.1.0",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^16.0.0",
@@ -60,7 +61,8 @@
     "ts-node": "^10.9.2",
     "turbo": "^2.3.4",
     "typedoc": "^0.25.8",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "yaml": "^2.9.1"
   },
   "packageManager": "npm@10.9.2"
 }

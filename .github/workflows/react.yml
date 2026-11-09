@@ -2,9 +2,7 @@ name: react
 on:
   push:
     branches:
-      - main
-      - release/*
-      - snapshot/*
+      - '**'
     tags:
       - v*
   pull_request:

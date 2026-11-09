@@ -5,8 +5,7 @@ on:
       - main
       - release/*
       - snapshot/*
-    tags:
-      - v*
+    # Tags are released by release.yml; upstream's npm/docker/cue publish flow does not apply to this fork.
   pull_request:
   merge_group:
 

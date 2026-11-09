@@ -3,7 +3,8 @@ on:
   push:
     branches:
       - '**'
-    # Tags are released by release.yml; upstream's npm/docker/cue publish flow does not apply to this fork.
+    tags:
+      - v*
   pull_request:
   merge_group:
 
@@ -25,22 +26,3 @@ jobs:
           cue_version: "v0.16.1"
       - name: check cue schema
         run: make cue-eval
-
-  publish-module:
-    name: "publish module to Central Registry"
-    needs: "validate-schemas"
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'v') }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: ./.github/actions/setup_environment
-        with:
-          enable_go: true
-          enable_cue: true
-          cue_version: "v0.16.1"
-      - name: Login to Central Registry # to allow publishing the module
-        run: cue login --token=${{ secrets.CUE_REG_TOKEN }}
-      - name: Publish the module
-        run: cue mod publish ${{ github.ref_name }}
-        working-directory: cue

@@ -1,0 +1,51 @@
+name: Setup environment
+description: Setup GO or NPM environment (vendored from perses/github-actions v0.12.0, actions pinned to SHAs)
+inputs:
+  enable_go:
+    description: Whether to enable go specific features, such as caching.
+    default: "false"
+  go_version:
+    description: The Go version to be used if Go is enable
+    default: 1.26.x
+  enable_go_cache:
+    description: Whether you want to cache the go dependencies
+    default: "true"
+  enable_cue:
+    description: Whether you want to install the cue binary
+    default: "false"
+  cue_version:
+    description: The Cue version to be used if Cue is enable
+    default: v0.16.1
+  enable_npm:
+    description: Whether to enable npm specific features, such as caching.
+    default: "false"
+  nvmrc_path:
+    description: Path to the nvmrc file that contain the node version
+    default: .nvmrc
+runs:
+  using: composite
+  steps:
+    - name: Install Go
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      if: inputs.enable_go == 'true'
+      with:
+        go-version: ${{ inputs.go_version }}
+        cache: ${{ inputs.enable_go_cache }}
+    - name: Install Cue
+      if: ${{ inputs.enable_go == 'true' && inputs.enable_cue == 'true' }}
+      run: go install cuelang.org/go/cmd/cue@${{  inputs.cue_version }}
+      shell: bash
+    - name: Install nodejs
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      if: inputs.enable_npm == 'true'
+      with:
+        node-version-file: ${{ inputs.nvmrc_path }}
+        registry-url: "https://registry.npmjs.org"
+    - name: Cache npm
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      if: inputs.enable_npm == 'true'
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-

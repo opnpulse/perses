@@ -21,8 +21,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: perses/github-actions@a7d024e4d064be61d47b59bafd514d1465fb2e4d # v0.12.0
-      - uses: ./.github/perses-ci/actions/setup_environment
+      - uses: ./.github/actions/setup_environment
         with:
           enable_npm: true
           nvmrc_path: "./ui/.nvmrc"
@@ -75,8 +74,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: perses/github-actions@a7d024e4d064be61d47b59bafd514d1465fb2e4d # v0.12.0
-      - uses: ./.github/perses-ci/actions/setup_environment
+      - uses: ./.github/actions/setup_environment
         with:
           enable_npm: true
           nvmrc_path: "./ui/.nvmrc"
@@ -104,8 +102,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-      - uses: perses/github-actions@a7d024e4d064be61d47b59bafd514d1465fb2e4d # v0.12.0
-      - uses: ./.github/perses-ci/actions/setup_environment
+      - uses: ./.github/actions/setup_environment
         with:
           enable_go: true
       - name: Download react build

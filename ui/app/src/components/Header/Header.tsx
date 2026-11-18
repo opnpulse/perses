@@ -34,12 +34,22 @@ export default function Header(): JSX.Element {
   const showBilling = useShowBilling();
 
   return (
-    <AppBar position="relative">
+    <AppBar
+      position="relative"
+      color="inherit"
+      elevation={0}
+      sx={{
+        // Match the cluster-ui / kubedb-ui navbar: neutral surface, hairline border, brand color only on accents.
+        backgroundColor: 'background.paper',
+        color: 'text.primary',
+        borderBottom: 1,
+        borderColor: 'divider',
+      }}
+    >
       <Toolbar
         sx={{
-          backgroundColor: (theme) => theme.palette.designSystem.blue[700],
           '&': {
-            minHeight: '50px',
+            minHeight: '64px',
             paddingLeft: 0,
             paddingRight: 0.75,
           },

@@ -53,7 +53,16 @@ export function useBrandingFromCache(): Branding | undefined {
 }
 
 export function fetchBranding(): Promise<Branding> {
-  // Construct URL without API prefix - branding API should be at the root
-  const url = window.location.origin + resource;
-  return fetchJson<Branding>(url);
+  return fetchJson<Branding>(brandingURL());
+}
+
+// Branding API should be at the root (no API prefix). In local dev on a bb.test host the platform (b3)
+// accounts server runs on :3003, mirroring getServerDomain("3003") in ui-modules. b3 only allows CORS
+// from *.bb.test origins, so open Perses at http://bb.test:<port> (not localhost) for this to work.
+function brandingURL(): string {
+  const { protocol, hostname, origin } = window.location;
+  if (hostname === 'bb.test' || hostname.endsWith('.bb.test')) {
+    return `${protocol}//${hostname}:3003${resource}`;
+  }
+  return origin + resource;
 }

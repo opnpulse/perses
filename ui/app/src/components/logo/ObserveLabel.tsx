@@ -12,21 +12,24 @@
 // limitations under the License.
 
 import { ReactElement } from 'react';
+import { alpha, Box } from '@mui/material';
 
+// Product tag next to the logo, tinted with the branding primary color like the sibling AppsCode UIs.
 function ObserveLabel(): ReactElement {
   return (
-    <div
-      style={{
-        fontSize: '13px',
-        padding: '0 2px',
+    <Box
+      sx={{
+        fontSize: '12px',
+        lineHeight: '20px',
+        px: 1,
         fontWeight: 600,
-        color: '#fff',
-        border: '2px solid #fff',
-        borderRadius: '5px',
+        color: 'primary.main',
+        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        borderRadius: '6px',
       }}
     >
       Observe
-    </div>
+    </Box>
   );
 }
 

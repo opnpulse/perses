@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import React, { createContext, ReactElement, useContext, useEffect, useMemo } from 'react';
-import { CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
+import { createTheme, CssBaseline, Theme, ThemeProvider, useMediaQuery } from '@mui/material';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -21,12 +21,16 @@ import {
   useLocalStorage,
 } from '@perses-dev/components';
 import { TOGGLE_THEME_EVENT } from '@openpulse/shared/dashboards/src/keyboard-shortcuts/events';
+import { useBranding } from '../model/branding-client';
 
 // app specific echarts option overrides, empty since perses uses default
 // https://apache.github.io/echarts-handbook/en/concepts/style/#theme
 const ECHARTS_THEME_OVERRIDES = {};
 
 const DARK_MODE_PREFERENCE_KEY = 'PERSES_ENABLE_DARK_MODE';
+
+// AppsCode brand green, used by kubedb-ui when the branding API doesn't provide a primary color.
+const DEFAULT_BRAND_PRIMARY_COLOR = '#00994A';
 
 interface DarkModeContext {
   isDarkModeEnabled: boolean;
@@ -63,7 +67,14 @@ export function DarkModeContextProvider(props: { children: React.ReactNode }): R
     [isDarkModeEnabled, setDarkMode]
   );
 
-  const theme = useMemo(() => getTheme(isDarkModeEnabled ? 'dark' : 'light'), [isDarkModeEnabled]);
+  // The platform branding API decides the primary color, the same way cluster-ui and kubedb-ui do.
+  const { data: branding } = useBranding();
+  const brandPrimaryColor = branding?.primaryColor || DEFAULT_BRAND_PRIMARY_COLOR;
+
+  const theme = useMemo(
+    () => withBrandPrimaryColor(getTheme(isDarkModeEnabled ? 'dark' : 'light'), brandPrimaryColor),
+    [isDarkModeEnabled, brandPrimaryColor]
+  );
   const chartsTheme: PersesChartsTheme = useMemo(() => {
     return generateChartsTheme(theme, { echartsTheme: ECHARTS_THEME_OVERRIDES });
   }, [theme]);
@@ -76,6 +87,22 @@ export function DarkModeContextProvider(props: { children: React.ReactNode }): R
       </ChartsProvider>
     </ThemeProvider>
   );
+}
+
+/**
+ * Overrides the primary (and info, which Perses aliases to primary) palette with the branding color.
+ * Falls back to the default Perses palette when the color is missing or not parseable.
+ */
+function withBrandPrimaryColor(baseTheme: Theme, primaryColor?: string): Theme {
+  if (!primaryColor) {
+    return baseTheme;
+  }
+  try {
+    const brand = baseTheme.palette.augmentColor({ color: { main: primaryColor } });
+    return createTheme(baseTheme, { palette: { primary: brand, info: brand } });
+  } catch {
+    return baseTheme;
+  }
 }
 
 export function useDarkMode(): DarkModeContext {

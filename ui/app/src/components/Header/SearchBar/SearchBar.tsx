@@ -184,11 +184,11 @@ export function SearchBar(): ReactElement {
   useHandleShortCut(handleOpen);
 
   return (
-    <Paper sx={{ width: '100%', flexShrink: 1 }}>
+    <Paper variant="outlined" sx={{ width: '100%', flexShrink: 1, borderRadius: '10px' }}>
       <Button
         size="small"
         fullWidth
-        sx={{ display: 'flex', justifyContent: 'space-between' }}
+        sx={{ display: 'flex', justifyContent: 'space-between', color: 'text.secondary', borderRadius: '10px' }}
         onMouseDown={handleOpenMouseDown}
         onClick={handleOpen}
       >

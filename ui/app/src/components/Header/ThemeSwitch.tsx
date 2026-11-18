@@ -41,7 +41,7 @@ export function ThemeSwitch(props: { isAuthEnabled: boolean }): ReactElement {
   }
   return (
     <Tooltip title="Switch Theme">
-      <IconButton onClick={handleDarkModeChange} aria-label="Theme" style={{ color: 'white' }}>
+      <IconButton onClick={handleDarkModeChange} aria-label="Theme" sx={{ color: 'text.secondary' }}>
         {swapIcon()}
       </IconButton>
     </Tooltip>

@@ -12,9 +12,32 @@
 // limitations under the License.
 
 import { ReactElement, useCallback, useMemo, useState, MouseEvent } from 'react';
-import { IconButton, Menu, MenuItem, Box, Typography, Avatar, ListItemText, ListItemIcon } from '@mui/material';
-import ViewGrid from 'mdi-material-ui/ViewGrid';
+import { IconButton, Popover, Box, Typography, Tooltip, SvgIcon, SvgIconProps } from '@mui/material';
+import Check from 'mdi-material-ui/Check';
 import { useCookies } from 'react-cookie';
+
+const APP_SWITCHER_LABEL = 'AppsCode apps';
+
+// Lucide "Grip" icon, the app-switcher trigger used by cluster-ui / kubedb-ui (AcAppSwitcher).
+// Drawn inline so Perses doesn't need the lucide package for one icon.
+const GRIP_DOTS = [5, 12, 19].flatMap((cy) => [5, 12, 19].map((cx) => ({ cx, cy })));
+function GripIcon(props: SvgIconProps): ReactElement {
+  return (
+    <SvgIcon
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      {GRIP_DOTS.map(({ cx, cy }) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1} />
+      ))}
+    </SvgIcon>
+  );
+}
 
 export interface AppDrawerProps {
   currentApp?: string;
@@ -49,7 +72,7 @@ const DEFAULT_APPS = [
   },
   {
     name: 'observe',
-    icon_url: 'https://cdn.appscode.com/images/products/observe/logos/observe.svg',
+    icon_url: 'https://cdn.appscode.com/images/products/observe/logos/observe.png',
     title: 'Observe',
     port: '8080',
     sub_title: 'Observe your activities',
@@ -130,10 +153,12 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
     return !list.includes(baseUrl);
   }, [baseUrl]);
 
+  // Like the design-system AcAppSwitcher, the current app stays in the grid (marked with a check)
+  // so people can see where they are; clicking it just closes the panel.
   const filteredAppList = useMemo(() => {
     return appList
       .filter((app) => {
-        if (app.name === currentApp) return false;
+        if (app.name === currentApp) return true;
         if (app.name === 'billing' && showBilling) return true;
         const selfHostList = ['billing', 'selfhost', 'learn'];
         if (isSelfHosted && selfHostList.includes(app.name)) return false;
@@ -145,100 +170,172 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
       }));
   }, [appList, currentApp, isSelfHosted, getUrl, showBilling]);
 
-  const handleClick = (name: string): void => {
-    if (name === 'grafana') {
+  const handleClick = (event: MouseEvent<HTMLElement>, name: string): void => {
+    if (name === currentApp) {
+      event.preventDefault();
+    } else if (name === 'grafana') {
       setCookie('gorg', activeOrganization, { domain: rootDomain, path: '/' });
     }
     handleClose();
   };
 
+  const open = Boolean(anchorEl);
+
+  // Layout and styling mirror AcAppSwitcher from @ac-design/design-system (used by cluster-ui and kubedb-ui).
   return (
     <>
-      <IconButton
-        color="inherit"
-        onClick={handleOpen}
-        aria-label="App drawer"
-        sx={{
-          border: '1px solid currentColor',
-          borderRadius: '50%',
-          p: '3px',
-        }}
-      >
-        <ViewGrid sx={{ fontSize: '1.1rem' }} />
-      </IconButton>
-      <Menu
+      <Tooltip title={APP_SWITCHER_LABEL}>
+        <IconButton
+          onClick={handleOpen}
+          aria-label={APP_SWITCHER_LABEL}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: '10px',
+            border: '1px solid transparent',
+            color: open ? 'text.primary' : 'text.secondary',
+            backgroundColor: open ? 'action.hover' : undefined,
+            '&:hover': { borderColor: 'divider', backgroundColor: 'action.hover', color: 'text.primary' },
+          }}
+        >
+          <GripIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+      </Tooltip>
+      <Popover
         anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        open={open}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        PaperProps={{
-          sx: {
-            width: 258,
-            mt: 1.5,
-            overflow: 'visible',
-            '&::after': {
-              content: '""',
-              display: 'block',
-              position: 'absolute',
-              top: 0,
-              right: 14,
-              width: 15,
-              height: 15,
-              bgcolor: 'rgb(255,255,255)',
-              transform: 'translateY(-50%) rotate(45deg)',
-              zIndex: 0,
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: {
+            role: 'dialog',
+            'aria-label': APP_SWITCHER_LABEL,
+            sx: {
+              mt: '6px',
+              width: 340,
+              maxWidth: 'calc(100vw - 16px)',
+              p: 1,
+              borderRadius: '14px',
+              border: 1,
+              borderColor: 'divider',
+              backgroundImage: 'none',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
             },
           },
         }}
       >
-        <Box>
-          {filteredAppList.map((app) => (
-            <MenuItem
-              key={app.name}
-              component="a"
-              href={app.url}
-              onClick={() => handleClick(app.name)}
-              sx={{
-                py: 1.5,
-                px: 3,
-                borderBottom: '1px solid #e2e8f0',
-                '&:last-child': {
-                  borderBottom: 0,
-                },
-                alignItems: 'flex-start',
-                whiteSpace: 'normal',
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 0, mr: '10px' }}>
-                <Avatar
-                  src={app.icon_url}
-                  variant="square"
-                  sx={{ width: 32, height: 32, backgroundColor: 'transparent' }}
-                />
-              </ListItemIcon>
-              <ListItemText
-                primary={<Typography sx={{ fontWeight: 600 }}>{app.title}</Typography>}
-                secondary={
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ display: 'block', wordBreak: 'break-word', whiteSpace: 'normal' }}
+        <Typography
+          component="p"
+          sx={{
+            px: 1.5,
+            pt: 1,
+            pb: 1,
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'text.secondary',
+          }}
+        >
+          {APP_SWITCHER_LABEL}
+        </Typography>
+        <Box
+          component="ul"
+          role="list"
+          sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, m: 0, p: 0 }}
+        >
+          {filteredAppList.map((app) => {
+            const isCurrent = app.name === currentApp;
+            return (
+              <Box component="li" key={app.name} sx={{ listStyle: 'none' }}>
+                <Box
+                  component="a"
+                  href={app.url}
+                  title={app.sub_title}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  onClick={(event: MouseEvent<HTMLElement>) => handleClick(event, app.name)}
+                  sx={{
+                    position: 'relative',
+                    display: 'flex',
+                    height: '100%',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    borderRadius: '8px',
+                    px: 0.75,
+                    pt: 1.5,
+                    pb: 1.25,
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    color: 'text.primary',
+                    outline: 'none',
+                    transition: 'background-color 200ms',
+                    backgroundColor: isCurrent ? 'action.selected' : undefined,
+                    '&:hover': { backgroundColor: isCurrent ? 'action.selected' : 'action.hover' },
+                    '&:hover .app-icon': { transform: 'translateY(-1px)' },
+                    '&:focus-visible': { boxShadow: (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}` },
+                  }}
+                >
+                  <Box
+                    className="app-icon"
+                    aria-hidden="true"
+                    sx={{
+                      display: 'inline-flex',
+                      width: 40,
+                      height: 40,
+                      flexShrink: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      borderRadius: '10px',
+                      border: 1,
+                      borderColor: 'divider',
+                      backgroundColor: 'background.paper',
+                      transition: 'transform 200ms',
+                    }}
                   >
-                    {app.sub_title}
+                    <Box
+                      component="img"
+                      src={app.icon_url}
+                      alt=""
+                      sx={{ width: 28, height: 28, objectFit: 'contain' }}
+                    />
+                  </Box>
+                  <Typography
+                    noWrap
+                    sx={{ width: '100%', fontSize: 12, fontWeight: 500, lineHeight: '16px', color: 'text.primary' }}
+                  >
+                    {app.title}
                   </Typography>
-                }
-              />
-            </MenuItem>
-          ))}
+                  {isCurrent && (
+                    <Box
+                      aria-hidden="true"
+                      sx={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        display: 'inline-flex',
+                        width: 16,
+                        height: 16,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '50%',
+                        backgroundColor: 'primary.main',
+                        color: 'primary.contrastText',
+                      }}
+                    >
+                      <Check sx={{ fontSize: 11 }} />
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            );
+          })}
         </Box>
-      </Menu>
+      </Popover>
     </>
   );
 }

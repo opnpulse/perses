@@ -395,15 +395,20 @@ func (d *DAO) generateSelectAllOrgsOfAUserQuery(name string) (string, []any) {
 	teamAlias := "t"
 	tmAlias := "tm"
 
-	queryBuilder := sqlbuilder.PostgreSQL.NewSelectBuilder().
-		Select(orgAlias+"."+colDoc).
-		From(d.generateCompleteTableName(tableUser)+" "+orgAlias).
-		Join(d.generateCompleteTableName(tableTeam)+" "+teamAlias,
-			orgAlias+".id = "+teamAlias+".org_id").
+	// A user can belong to several teams of the same org, so match through a subquery instead of
+	// joining, which would return the org once per membership.
+	memberOrgs := sqlbuilder.PostgreSQL.NewSelectBuilder()
+	memberOrgs.Select(teamAlias+".org_id").
+		From(d.generateCompleteTableName(tableTeam)+" "+teamAlias).
 		Join(d.generateCompleteTableName(tableTeamMember)+" "+tmAlias,
-			teamAlias+".id = "+tmAlias+".team_id")
+			teamAlias+".id = "+tmAlias+".team_id").
+		Where(memberOrgs.Equal(tmAlias+".user_id", userID))
 
-	queryBuilder.Where(queryBuilder.Equal(tmAlias+".user_id", userID)).
+	queryBuilder := sqlbuilder.PostgreSQL.NewSelectBuilder().
+		Select(orgAlias + "." + colDoc).
+		From(d.generateCompleteTableName(tableUser) + " " + orgAlias)
+
+	queryBuilder.Where(queryBuilder.In(orgAlias+".id", memberOrgs)).
 		Where(queryBuilder.Equal(orgAlias+"."+colType, "org"))
 
 	query, args := queryBuilder.Build()

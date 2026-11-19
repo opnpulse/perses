@@ -19,7 +19,7 @@ import Check from 'mdi-material-ui/Check';
 import Plus from 'mdi-material-ui/Plus';
 import { useIsReadonly } from '../../context/Config';
 import { GlobalProject, useHasPermission } from '../../context/Authorization';
-import { acPrimaryGradient, acTokens } from './ac-tokens';
+import { acPrimaryGradient, acTokens } from '../../utils/ac-tokens';
 
 interface AddProjectCardProps {
   onClick: () => void;
@@ -118,7 +118,7 @@ export function AddProjectCard({ onClick, large = false }: AddProjectCardProps):
             justifyContent: 'space-between',
           }}
         >
-          <Typography sx={{ fontWeight: 600, fontSize: large ? 24 : 18, lineHeight: large ? 1.3 : '24px' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: large ? 22 : 17, lineHeight: large ? '30px' : '24px' }}>
             {large ? 'Create your first project' : 'Create a new project'}
           </Typography>
           <Box
@@ -155,7 +155,7 @@ export function AddProjectCard({ onClick, large = false }: AddProjectCardProps):
             <Box
               key={way}
               component="span"
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: 12, color: 'text.secondary' }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: 13, color: 'text.secondary' }}
             >
               <Check aria-hidden="true" sx={{ fontSize: 14, color: 'primary.main' }} />
               {way}

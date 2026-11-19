@@ -23,12 +23,13 @@ function ObserveLabel(): ReactElement {
         lineHeight: '20px',
         px: 1,
         fontWeight: 600,
+        letterSpacing: '0.06em',
         color: 'primary.main',
         backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
         borderRadius: '6px',
       }}
     >
-      Observe
+      OBSERVE
     </Box>
   );
 }

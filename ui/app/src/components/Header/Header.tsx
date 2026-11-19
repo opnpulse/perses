@@ -12,8 +12,9 @@
 // limitations under the License.
 
 import { Link as RouterLink } from 'react-router-dom';
-import { AppBar, Box, Button, Toolbar } from '@mui/material';
+import { alpha, AppBar, Box, Button, Toolbar } from '@mui/material';
 import { useCookies } from 'react-cookie';
+import { acTokens } from '../../utils/ac-tokens';
 import { useIsLaptopSize, useIsMobileSize } from '../../utils/browser-size';
 import { useIsAuthEnabled } from '../../context/Config';
 import ObserveLabel from '../logo/ObserveLabel';
@@ -39,19 +40,22 @@ export default function Header(): JSX.Element {
       color="inherit"
       elevation={0}
       sx={{
-        // Match the cluster-ui / kubedb-ui navbar: neutral surface, hairline border, brand color only on accents.
-        backgroundColor: 'background.paper',
+        // The design system's AcNavbar, as in kubedb-ui: a translucent white surface over a blur,
+        // a light hairline border, brand color only on accents.
+        backgroundColor: (theme) => alpha(acTokens(theme).surface, 0.9),
+        backgroundImage: 'none',
+        backdropFilter: 'blur(4px)',
         color: 'text.primary',
-        borderBottom: 1,
-        borderColor: 'divider',
+        borderBottom: '1px solid',
+        borderColor: (theme) => alpha(acTokens(theme).border, 0.8),
       }}
     >
       <Toolbar
         sx={{
           '&': {
-            minHeight: '64px',
+            minHeight: '72px',
             paddingLeft: 0,
-            paddingRight: 0.75,
+            paddingRight: { xs: 2, sm: 3 },
           },
         }}
       >

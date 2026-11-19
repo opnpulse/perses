@@ -57,7 +57,7 @@ function HomeView(): ReactElement {
   };
 
   return (
-    <Stack sx={{ width: '100%', overflowX: 'hidden' }} m={isMobileSize ? 1 : 2} gap={3}>
+    <Stack sx={{ width: '100%', overflowX: 'hidden', m: isMobileSize ? 1 : 2, mt: isMobileSize ? 2 : 3.5 }} gap={3}>
       <HomeViewHeroSection
         userProjects={userProjects}
         onAddProjectClick={handleAddProjectDialogOpen}

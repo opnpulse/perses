@@ -15,7 +15,7 @@ import { Theme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
 // Surface, border and shadow values from the AppsCode design system (@ac-design/design-system),
-// so the landing-page cards match cluster-ui. Perses' own `background.paper` is a bluish grey
+// so the navbar and landing-page cards match cluster-ui and kubedb-ui. Perses' own `background.paper` is a bluish grey
 // (#F0F1F6) in light mode, which makes tinted cards look darker than the design system's white.
 const tokens = {
   light: {

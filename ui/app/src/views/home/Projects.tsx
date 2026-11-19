@@ -32,9 +32,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import ChevronRight from 'mdi-material-ui/ChevronRight';
 import { ProjectWithDashboards, useProjectsWithDashboards } from '../../model/project-client';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { acCardSx, acTokens } from '../../utils/ac-tokens';
 import { AddProjectCard } from './AddProjectCard';
 import { SectionTitle } from './SectionTitle';
-import { acCardSx, acTokens } from './ac-tokens';
 
 /**
  * Generate a color for a project based on its name.

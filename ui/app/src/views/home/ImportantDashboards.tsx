@@ -20,8 +20,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useImportantDashboardList } from '../../model/dashboard-client';
 import { useConfig } from '../../model/config-client';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { acCardSx } from '../../utils/ac-tokens';
 import { SectionTitle } from './SectionTitle';
-import { acCardSx } from './ac-tokens';
 
 export function ImportantDashboards(): ReactElement {
   const { data: config } = useConfig();

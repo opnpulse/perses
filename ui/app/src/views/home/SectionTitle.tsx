@@ -41,7 +41,7 @@ export function SectionTitle({ icon, title }: SectionTitleProps): ReactElement {
       >
         {icon}
       </Box>
-      <Typography component="h2" sx={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3 }}>
+      <Typography component="h2" sx={{ fontSize: 17, fontWeight: 600, lineHeight: '24px' }}>
         {title}
       </Typography>
     </Box>

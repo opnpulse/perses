@@ -239,16 +239,16 @@ export function AccountMenu(): ReactElement {
           </Box>
         )}
         {currentAccount ? (
-          <AccountAvatar account={currentAccount} size={36} />
+          <AccountAvatar account={currentAccount} size={40} />
         ) : (
-          <Avatar sx={{ width: 36, height: 36 }}>
+          <Avatar sx={{ width: 40, height: 40 }}>
             <AccountOutline />
           </Avatar>
         )}
         <ChevronDown
           sx={{
             display: { xs: 'none', sm: 'block' },
-            fontSize: 18,
+            fontSize: 20,
             color: 'text.secondary',
             transition: 'transform 200ms',
             transform: open ? 'rotate(180deg)' : 'none',

@@ -191,8 +191,8 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
           aria-haspopup="dialog"
           aria-expanded={open}
           sx={{
-            width: 38,
-            height: 38,
+            width: 42,
+            height: 42,
             borderRadius: '10px',
             border: '1px solid transparent',
             color: open ? 'text.primary' : 'text.secondary',
@@ -200,7 +200,7 @@ export function AppDrawer(props: AppDrawerProps): ReactElement {
             '&:hover': { borderColor: 'divider', backgroundColor: 'action.hover', color: 'text.primary' },
           }}
         >
-          <GripIcon sx={{ fontSize: 20 }} />
+          <GripIcon sx={{ fontSize: 24 }} />
         </IconButton>
       </Tooltip>
       <Popover

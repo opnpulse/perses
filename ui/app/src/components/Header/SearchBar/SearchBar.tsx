@@ -188,7 +188,7 @@ export function SearchBar(): ReactElement {
       <Button
         size="small"
         fullWidth
-        sx={{ display: 'flex', justifyContent: 'space-between', color: 'text.secondary', borderRadius: '10px' }}
+        sx={{ display: 'flex', justifyContent: 'space-between', color: 'text.secondary', borderRadius: '10px', py: 1 }}
         onMouseDown={handleOpenMouseDown}
         onClick={handleOpen}
       >

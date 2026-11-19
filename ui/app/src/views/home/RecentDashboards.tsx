@@ -23,8 +23,8 @@ import { intlFormatDistance } from 'date-fns';
 import { useRecentDashboardList } from '../../model/dashboard-client';
 import { useNavHistoryDispatch } from '../../context/DashboardNavHistory';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { acCardSx } from '../../utils/ac-tokens';
 import { SectionTitle } from './SectionTitle';
-import { acCardSx } from './ac-tokens';
 
 export function RecentDashboards(): ReactElement {
   const { data, isLoading } = useRecentDashboardList();

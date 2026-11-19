@@ -23,7 +23,7 @@ import { CRUDButton } from '../../components/CRUDButton/CRUDButton';
 import { ImportRoute } from '../../model/route';
 import { useInformation } from '../../context/Config';
 import { useActiveUser } from '../../model/auth/auth-client';
-import { acCardSx, acPrimaryGradient } from './ac-tokens';
+import { acCardSx, acPrimaryGradient } from '../../utils/ac-tokens';
 
 interface HomeViewHeroSectionProps {
   userProjects: ProjectResource[];
@@ -33,6 +33,17 @@ interface HomeViewHeroSectionProps {
 
 // The landing page's overview header, matching cluster-ui's: at a glance it says where you are
 // (the area and the organisation), what the page is for, and what you can do from it.
+// A step above AcButton's normal size (36px tall, 14px text), so the buttons read comfortably.
+const heroButtonSx = {
+  height: 40,
+  px: 2,
+  borderRadius: '10px',
+  textTransform: 'none',
+  fontSize: 15,
+  fontWeight: 500,
+  '& .MuiButton-startIcon > *:nth-of-type(1)': { fontSize: 18 },
+} as const;
+
 export function HomeViewHeroSection({
   userProjects,
   onAddProjectClick,
@@ -59,8 +70,9 @@ export function HomeViewHeroSection({
           flexDirection: { xs: 'column', lg: 'row' },
           alignItems: { xs: 'flex-start', lg: 'center' },
           justifyContent: 'space-between',
-          gap: 2.5,
-          p: { xs: 2.5, lg: 3 },
+          gap: 2,
+          px: 2.5,
+          py: 2,
           background: acPrimaryGradient,
         }}
       >
@@ -70,8 +82,8 @@ export function HomeViewHeroSection({
           sx={{
             position: 'absolute',
             right: -24,
-            bottom: -48,
-            fontSize: 176,
+            bottom: -32,
+            fontSize: 144,
             color: (theme) => alpha(theme.palette.primary.main, 0.05),
             pointerEvents: 'none',
           }}
@@ -82,19 +94,17 @@ export function HomeViewHeroSection({
             aria-hidden="true"
             sx={{
               display: { xs: 'none', sm: 'flex' },
-              width: 56,
-              height: 56,
+              width: 48,
+              height: 48,
               flexShrink: 0,
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '16px',
+              borderRadius: '14px',
               color: 'common.white',
-              background: (theme) =>
-                `linear-gradient(to bottom right, ${theme.palette.primary.main}, ${alpha(theme.palette.primary.main, 0.7)})`,
-              boxShadow: (theme) => `0 8px 20px -8px ${theme.palette.primary.main}`,
+              bgcolor: 'primary.main',
             }}
           >
-            <ChartBoxOutline sx={{ fontSize: 28 }} />
+            <ChartBoxOutline sx={{ fontSize: 26 }} />
           </Box>
 
           {information ? (
@@ -137,11 +147,19 @@ export function HomeViewHeroSection({
               </Typography>
               <Typography
                 component="h1"
-                sx={{ m: 0, fontSize: { xs: 24, sm: 30 }, lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.01em' }}
+                sx={{
+                  m: 0,
+                  fontSize: { xs: 22, md: 26 },
+                  lineHeight: { xs: '30px', md: '34px' },
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em',
+                }}
               >
                 Monitor your projects and dashboards
               </Typography>
-              <Typography sx={{ m: 0, mt: 0.5, maxWidth: 640, fontSize: 15, color: 'text.secondary' }}>
+              <Typography
+                sx={{ m: 0, mt: 0.5, maxWidth: 640, fontSize: 15, lineHeight: '22px', color: 'text.secondary' }}
+              >
                 {canCreateDashboards
                   ? 'Every project in this organisation. Open one to explore its dashboards, or start a new one.'
                   : 'Create your first project to start building dashboards and importing existing ones.'}
@@ -156,7 +174,7 @@ export function HomeViewHeroSection({
             position: 'relative',
             flexWrap: 'wrap',
             alignItems: 'center',
-            gap: 1.5,
+            gap: 1,
             flexShrink: 0,
             width: { xs: '100%', sm: 'auto' },
           }}
@@ -167,7 +185,7 @@ export function HomeViewHeroSection({
             component={RouterLink}
             to={ImportRoute}
             disabled={!canCreateDashboards}
-            sx={{ px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+            sx={heroButtonSx}
           >
             Import dashboard
           </Button>
@@ -177,7 +195,7 @@ export function HomeViewHeroSection({
             variant="outlined"
             startIcon={<PlusIcon />}
             onClick={onAddProjectClick}
-            sx={{ px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+            sx={heroButtonSx}
           >
             Create project
           </CRUDButton>
@@ -187,7 +205,7 @@ export function HomeViewHeroSection({
             onClick={onAddDashboardClick}
             disabled={!canCreateDashboards}
             disableElevation
-            sx={{ px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 16 }}
+            sx={heroButtonSx}
           >
             Create dashboard
           </Button>

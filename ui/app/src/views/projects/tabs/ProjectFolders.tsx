@@ -80,7 +80,13 @@ export function FolderAccordion({ folder, project }: FolderAccordionProps): Reac
 
   return (
     <>
-      <Accordion TransitionProps={{ unmountOnExit: true }}>
+      <Accordion
+        TransitionProps={{ unmountOnExit: true }}
+        disableGutters
+        elevation={0}
+        square
+        sx={{ '&:not(:last-of-type)': { borderBottom: 1, borderColor: 'divider' }, '&::before': { display: 'none' } }}
+      >
         <AccordionSummary expandIcon={<ChevronDown />}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" width="100%">
             <Stack direction="row" alignItems="center" gap={1}>
@@ -146,7 +152,11 @@ export function ProjectFolders({
 
   if (folders.length === 0) {
     return (
-      <Typography sx={{ fontStyle: 'italic', color: 'warning.main' }}>No folders with dashboards found!</Typography>
+      <Card {...props}>
+        <Typography sx={{ padding: 2, fontStyle: 'italic', color: 'warning.main' }}>
+          No folders with dashboards found!
+        </Typography>
+      </Card>
     );
   }
 

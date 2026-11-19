@@ -23,6 +23,8 @@ import { intlFormatDistance } from 'date-fns';
 import { useRecentDashboardList } from '../../model/dashboard-client';
 import { useNavHistoryDispatch } from '../../context/DashboardNavHistory';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { SectionTitle } from './SectionTitle';
+import { acCardSx } from './ac-tokens';
 
 export function RecentDashboards(): ReactElement {
   const { data, isLoading } = useRecentDashboardList();
@@ -40,22 +42,15 @@ export function RecentDashboards(): ReactElement {
     <Card
       elevation={0}
       sx={{
-        border: '1px solid',
-        borderColor: 'divider',
+        ...acCardSx('16px'),
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: (theme) => theme.shadows[1],
       }}
     >
       <CardContent sx={{ flex: '0 0 auto' }}>
         <Stack spacing={0.75}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <HistoryIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h6" sx={{ fontSize: '1.25rem', fontWeight: 700 }}>
-              Recently Viewed Dashboards
-            </Typography>
-          </Box>
+          <SectionTitle icon={<HistoryIcon />} title="Recently viewed dashboards" />
           <Typography variant="body2" color="text.secondary">
             Jump back into the dashboards you opened most recently.
           </Typography>

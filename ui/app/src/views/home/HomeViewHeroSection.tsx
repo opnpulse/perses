@@ -11,17 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { ReactElement } from 'react';
-import ViewDashboardOutlineIcon from 'mdi-material-ui/ViewDashboardOutline';
+import ChartBoxOutline from 'mdi-material-ui/ChartBoxOutline';
 import PlusIcon from 'mdi-material-ui/Plus';
 import UploadIcon from 'mdi-material-ui/Upload';
-import { alpha } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
 import { ProjectResource } from '@perses-dev/client';
 import { CRUDButton } from '../../components/CRUDButton/CRUDButton';
 import { ImportRoute } from '../../model/route';
 import { useInformation } from '../../context/Config';
+import { useActiveUser } from '../../model/auth/auth-client';
+import { acCardSx, acPrimaryGradient } from './ac-tokens';
 
 interface HomeViewHeroSectionProps {
   userProjects: ProjectResource[];
@@ -29,145 +31,165 @@ interface HomeViewHeroSectionProps {
   onAddDashboardClick: () => void;
 }
 
+// The landing page's overview header, matching cluster-ui's: at a glance it says where you are
+// (the area and the organisation), what the page is for, and what you can do from it.
 export function HomeViewHeroSection({
   userProjects,
   onAddProjectClick,
   onAddDashboardClick,
 }: HomeViewHeroSectionProps): ReactElement {
   const information = useInformation();
+  const org = useActiveUser();
   const canCreateDashboards = userProjects.length > 0;
 
   return (
     <Box
+      component="header"
+      data-testid="home-hero"
       sx={{
-        position: 'relative',
         overflow: 'hidden',
-        width: '100%',
-        borderRadius: 3,
-        px: { xs: 3, md: 4 },
-        py: { xs: 3, md: 4 },
-        background: (theme) => {
-          if (theme.palette.mode === 'dark') {
-            return `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.info?.main || theme.palette.primary.main, 0.05)} 100%)`;
-          }
-          return `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.info?.main || theme.palette.primary.main, 0.03)} 100%)`;
-        },
-        border: '1px solid',
-        borderColor: 'divider',
-        color: 'text.primary',
-        boxShadow: (theme) => theme.shadows[1],
+        ...acCardSx('16px'),
       }}
     >
       <Box
         sx={{
-          position: 'absolute',
-          right: -50,
-          top: -50,
-          width: 256,
-          height: 256,
-          bgcolor: 'primary.main',
-          opacity: 0.05,
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          left: -50,
-          bottom: -50,
-          width: 256,
-          height: 256,
-          bgcolor: (theme) => theme.palette.secondary?.main || theme.palette.primary.main,
-          opacity: 0.05,
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-        }}
-      />
-
-      <Box
-        sx={{
           position: 'relative',
-          zIndex: 1,
-          display: 'grid',
-          gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1fr) auto' },
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: { xs: 'column', lg: 'row' },
+          alignItems: { xs: 'flex-start', lg: 'center' },
+          justifyContent: 'space-between',
           gap: 2.5,
-          alignItems: 'start',
+          p: { xs: 2.5, lg: 3 },
+          background: acPrimaryGradient,
         }}
       >
-        <Box sx={{ maxWidth: 760, minWidth: 0 }}>
+        {/* Faded watermark in the bottom-right corner */}
+        <ChartBoxOutline
+          aria-hidden="true"
+          sx={{
+            position: 'absolute',
+            right: -24,
+            bottom: -48,
+            fontSize: 176,
+            color: (theme) => alpha(theme.palette.primary.main, 0.05),
+            pointerEvents: 'none',
+          }}
+        />
+
+        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
+          <Box
+            aria-hidden="true"
+            sx={{
+              display: { xs: 'none', sm: 'flex' },
+              width: 56,
+              height: 56,
+              flexShrink: 0,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '16px',
+              color: 'common.white',
+              background: (theme) =>
+                `linear-gradient(to bottom right, ${theme.palette.primary.main}, ${alpha(theme.palette.primary.main, 0.7)})`,
+              boxShadow: (theme) => `0 8px 20px -8px ${theme.palette.primary.main}`,
+            }}
+          >
+            <ChartBoxOutline sx={{ fontSize: 28 }} />
+          </Box>
+
           {information ? (
             <Box
-              sx={{
-                lineHeight: 1.5,
-                '& *': { marginTop: 0 },
-              }}
+              sx={{ minWidth: 0, lineHeight: 1.5, '& *': { marginTop: 0 } }}
               dangerouslySetInnerHTML={{ __html: information }}
             />
           ) : (
-            <Stack spacing={1.5}>
-              <Chip
-                label="Quick start"
-                color="primary"
-                variant="outlined"
-                size="small"
-                sx={{ alignSelf: 'flex-start', bgcolor: (theme) => alpha(theme.palette.background.paper, 0.5) }}
-              />
-              <Typography variant="h2" sx={{ fontWeight: 700, maxWidth: 16 * 28 }}>
-                Pick up where you left off in Observe.
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                component="p"
+                sx={{
+                  m: 0,
+                  mb: 0.5,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  columnGap: 1,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                }}
+              >
+                Observability
+                {org && (
+                  <>
+                    <Box component="span" aria-hidden="true" sx={{ color: 'text.secondary' }}>
+                      ·
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{ color: 'text.secondary', letterSpacing: 'normal', textTransform: 'none' }}
+                    >
+                      {org}
+                    </Box>
+                  </>
+                )}
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6, maxWidth: 16 * 42 }}>
-                Create a project, start a new dashboard, or jump back into the views that matter most to your team.
+              <Typography
+                component="h1"
+                sx={{ m: 0, fontSize: { xs: 24, sm: 30 }, lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.01em' }}
+              >
+                Monitor your projects and dashboards
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {userProjects.length === 0
-                  ? 'Create your first project to unlock dashboard creation and imports.'
-                  : `${userProjects.length} ${userProjects.length === 1 ? 'project is' : 'projects are'} ready for new dashboards.`}
+              <Typography sx={{ m: 0, mt: 0.5, maxWidth: 640, fontSize: 15, color: 'text.secondary' }}>
+                {canCreateDashboards
+                  ? 'Every project in this organisation. Open one to explore its dashboards, or start a new one.'
+                  : 'Create your first project to start building dashboards and importing existing ones.'}
               </Typography>
-            </Stack>
+            </Box>
           )}
         </Box>
+
         <Stack
           direction="row"
-          spacing={1.5}
           sx={{
+            position: 'relative',
             flexWrap: 'wrap',
             alignItems: 'center',
-            justifySelf: { lg: 'end' },
-            pt: { lg: 0.5 },
+            gap: 1.5,
+            flexShrink: 0,
+            width: { xs: '100%', sm: 'auto' },
           }}
         >
           <Button
-            variant="contained"
-            size="medium"
-            startIcon={<ViewDashboardOutlineIcon />}
-            onClick={onAddDashboardClick}
+            variant="outlined"
+            startIcon={<UploadIcon />}
+            component={RouterLink}
+            to={ImportRoute}
             disabled={!canCreateDashboards}
-            sx={{ px: 2.5 }}
+            sx={{ px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
           >
-            Create Dashboard
+            Import dashboard
           </Button>
           <CRUDButton
             action="create"
             scope="Project"
             variant="outlined"
-            size="medium"
             startIcon={<PlusIcon />}
             onClick={onAddProjectClick}
-            sx={{ px: 2.5 }}
+            sx={{ px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
           >
-            Create Project
+            Create project
           </CRUDButton>
           <Button
-            variant="outlined"
-            size="medium"
-            startIcon={<UploadIcon />}
-            component={RouterLink}
-            to={ImportRoute}
+            variant="contained"
+            startIcon={<PlusIcon />}
+            onClick={onAddDashboardClick}
             disabled={!canCreateDashboards}
-            sx={{ px: 2.5 }}
+            disableElevation
+            sx={{ px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 16 }}
           >
-            Import Dashboard
+            Create dashboard
           </Button>
         </Stack>
       </Box>

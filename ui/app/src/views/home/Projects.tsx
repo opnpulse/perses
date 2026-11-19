@@ -32,6 +32,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import ChevronRight from 'mdi-material-ui/ChevronRight';
 import { ProjectWithDashboards, useProjectsWithDashboards } from '../../model/project-client';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { AddProjectCard } from './AddProjectCard';
+import { SectionTitle } from './SectionTitle';
+import { acCardSx, acTokens } from './ac-tokens';
 
 /**
  * Generate a color for a project based on its name.
@@ -85,20 +88,21 @@ function ProjectCard({ row }: ProjectCardProps): ReactElement {
       to={`/projects/${row.project.metadata.name}`}
       aria-label={projectName}
       sx={{
+        ...acCardSx('14px'),
         p: 2,
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
         cursor: 'pointer',
         textDecoration: 'none',
         color: 'inherit',
-        backgroundColor: 'background.paper',
-        transition: 'border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
+        boxShadow: (theme) => acTokens(theme).shadowXs,
+        transition: 'border-color 200ms, transform 200ms, box-shadow 200ms',
         '&:hover': {
-          borderColor: alpha(projectColor, 0.55),
-          bgcolor: 'action.hover',
-          boxShadow: (theme) => theme.shadows[1],
+          borderColor: alpha(projectColor, 0.5),
+          boxShadow: (theme) => acTokens(theme).shadowCard,
           transform: 'translateY(-2px)',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
+          '&:hover': { transform: 'none' },
         },
       }}
     >
@@ -107,9 +111,9 @@ function ProjectCard({ row }: ProjectCardProps): ReactElement {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
             <Box
               sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 1.5,
+                width: 40,
+                height: 40,
+                borderRadius: '10px',
                 bgcolor: alpha(projectColor, theme.palette.mode === 'dark' ? 0.2 : 0.12),
                 border: '1px solid',
                 borderColor: alpha(projectColor, 0.3),
@@ -169,19 +173,37 @@ function ProjectCard({ row }: ProjectCardProps): ReactElement {
 interface RenderProjectGridProps {
   projectRows: ProjectWithDashboards[];
   searchQuery: string;
+  onAddProjectClick: () => void;
 }
 
+const projectGridSx = {
+  display: 'grid',
+  gridTemplateColumns: {
+    xs: 'minmax(0, 1fr)',
+    sm: 'repeat(2, minmax(0, 1fr))',
+    lg: 'repeat(3, minmax(0, 1fr))',
+    xl: 'repeat(4, minmax(0, 1fr))',
+  },
+  gap: 2,
+} as const;
+
 function RenderProjectGrid(props: RenderProjectGridProps): ReactElement {
-  const { projectRows, searchQuery } = props;
+  const { projectRows, searchQuery, onAddProjectClick } = props;
+
+  if (projectRows.length === 0 && !searchQuery) {
+    return (
+      <Box sx={projectGridSx}>
+        <AddProjectCard onClick={onAddProjectClick} large />
+      </Box>
+    );
+  }
 
   if (projectRows.length === 0) {
     return (
       <Paper
         elevation={0}
         sx={{
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 2,
+          ...acCardSx('14px'),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -190,36 +212,28 @@ function RenderProjectGrid(props: RenderProjectGridProps): ReactElement {
       >
         <EmptyState
           icon={<Archive sx={{ fontSize: 32, color: 'text.secondary' }} />}
-          message={searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found'}
-          hint={
-            searchQuery ? 'Try a broader search or sort by dashboard count.' : 'Create a new project to get started.'
-          }
+          message={`No projects found matching "${searchQuery}"`}
+          hint="Try a broader search."
         />
       </Paper>
     );
   }
 
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: 'minmax(0, 1fr)',
-          sm: 'repeat(2, minmax(0, 1fr))',
-          lg: 'repeat(3, minmax(0, 1fr))',
-          xl: 'repeat(4, minmax(0, 1fr))',
-        },
-        gap: 2,
-      }}
-    >
+    <Box sx={projectGridSx}>
       {projectRows.map((row) => (
         <ProjectCard key={row.project.metadata.name} row={row} />
       ))}
+      {!searchQuery && <AddProjectCard onClick={onAddProjectClick} />}
     </Box>
   );
 }
 
-export function Projects(): ReactElement {
+interface ProjectsProps {
+  onAddProjectClick: () => void;
+}
+
+export function Projects({ onAddProjectClick }: ProjectsProps): ReactElement {
   const { data: projectRows, isLoading } = useProjectsWithDashboards();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -269,15 +283,15 @@ export function Projects(): ReactElement {
     <Card
       elevation={0}
       sx={{
-        border: '1px solid',
-        borderColor: 'divider',
+        ...acCardSx('16px'),
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: (theme) => theme.shadows[1],
       }}
     >
-      <CardContent sx={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', p: 3, minHeight: 0 }}>
+      <CardContent
+        sx={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', p: { xs: 2.5, lg: 3 }, minHeight: 0 }}
+      >
         <Stack spacing={2.5} sx={{ mb: 3 }}>
           <Stack
             direction={{ xs: 'column', lg: 'row' }}
@@ -286,10 +300,7 @@ export function Projects(): ReactElement {
             alignItems={{ xs: 'stretch', lg: 'flex-end' }}
           >
             <Stack spacing={0.75}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Archive sx={{ color: 'primary.main' }} />
-                <Typography variant="h2">Projects</Typography>
-              </Box>
+              <SectionTitle icon={<Archive />} title="Projects" />
               <Typography variant="body2" color="text.secondary">
                 Browse project workspaces and jump into the dashboards you manage most.
               </Typography>
@@ -341,7 +352,11 @@ export function Projects(): ReactElement {
           </Stack>
         ) : (
           <ErrorBoundary FallbackComponent={ErrorAlert}>
-            <RenderProjectGrid projectRows={sortedProjectRows} searchQuery={searchQuery} />
+            <RenderProjectGrid
+              projectRows={sortedProjectRows}
+              searchQuery={searchQuery}
+              onAddProjectClick={onAddProjectClick}
+            />
           </ErrorBoundary>
         )}
       </CardContent>

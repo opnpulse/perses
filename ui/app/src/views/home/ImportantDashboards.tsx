@@ -20,6 +20,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useImportantDashboardList } from '../../model/dashboard-client';
 import { useConfig } from '../../model/config-client';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { SectionTitle } from './SectionTitle';
+import { acCardSx } from './ac-tokens';
 
 export function ImportantDashboards(): ReactElement {
   const { data: config } = useConfig();
@@ -37,8 +39,7 @@ export function ImportantDashboards(): ReactElement {
     <Card
       elevation={0}
       sx={{
-        border: '1px solid',
-        borderColor: 'divider',
+        ...acCardSx('16px'),
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -47,12 +48,7 @@ export function ImportantDashboards(): ReactElement {
     >
       <CardContent sx={{ flex: '0 0 auto' }}>
         <Stack spacing={0.75}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <StarFourPointsOutline sx={{ color: 'primary.main' }} />
-            <Typography variant="h6" sx={{ fontSize: '1.125rem', fontWeight: 600 }}>
-              Important Dashboards
-            </Typography>
-          </Box>
+          <SectionTitle icon={<StarFourPointsOutline />} title="Important dashboards" />
           <Typography variant="body2" color="text.secondary">
             Curated dashboards configured for quick access.
           </Typography>

@@ -98,7 +98,7 @@ function HomeView(): ReactElement {
       </Box>
 
       <Box>
-        <Projects />
+        <Projects onAddProjectClick={handleAddProjectDialogOpen} />
       </Box>
     </Stack>
   );

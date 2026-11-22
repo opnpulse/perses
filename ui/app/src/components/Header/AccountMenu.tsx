@@ -23,7 +23,13 @@ import WhiteBalanceSunny from 'mdi-material-ui/WhiteBalanceSunny';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { useSnackbar } from '@perses-dev/components';
-import { BaseUser, useActiveUser, useOrganizationList, useUserApi } from '../../model/auth/auth-client';
+import {
+  BaseUser,
+  useActiveUser,
+  useOrganizationList,
+  usePlatformOrganizationList,
+  useUserApi,
+} from '../../model/auth/auth-client';
 import { LoginUrl, LogoutUrl, ProfileRoute } from '../../model/route';
 import { HTTPHeader, HTTPMethodGET } from '../../model/http';
 import { PERSES_APP_CONFIG } from '../../config';
@@ -39,9 +45,15 @@ interface Account {
   avatarUrl?: string;
 }
 
-function toAccount(entity: BaseUser, type: AccountType): Account {
+// avatarByName holds platform (b3) org avatars keyed by username; the user's own avatar comes on the entity (from ACE).
+function toAccount(entity: BaseUser, type: AccountType, avatarByName?: Map<string, string>): Account {
   const name = entity.metadata?.name ?? '';
-  return { name, displayName: entity.spec?.firstName || name, type, avatarUrl: entity.avatar_url };
+  return {
+    name,
+    displayName: entity.spec?.firstName || name,
+    type,
+    avatarUrl: entity.avatar_url || avatarByName?.get(name),
+  };
 }
 
 function getInitials(name: string): string {
@@ -144,19 +156,36 @@ export function AccountMenu(): ReactElement {
   const [, setCookie, removeCookie] = useCookies([activeOrganization]);
   const { data: user } = useUserApi();
   const { data: orgs } = useOrganizationList(user?.metadata?.name);
+  // Platform orgs carry the org avatars; Perses orgs are matched to them by name === username.
+  const { data: platformOrgs } = usePlatformOrganizationList(!!user);
 
   const basePath = PERSES_APP_CONFIG.api_prefix;
   const open = anchorEl !== null;
 
+  const orgAvatarByName = useMemo(
+    () =>
+      new Map(
+        (platformOrgs ?? []).flatMap((org) => (org.username && org.avatar_url ? [[org.username, org.avatar_url]] : []))
+      ) as Map<string, string>,
+    [platformOrgs]
+  );
+
   const userAccount = useMemo(() => (user ? toAccount(user, 'user') : undefined), [user]);
   const accounts = useMemo(() => {
-    const orgAccounts = orgs?.map((org) => toAccount(org, 'org')) ?? [];
+    const orgAccounts = orgs?.map((org) => toAccount(org, 'org', orgAvatarByName)) ?? [];
     return userAccount ? [userAccount, ...orgAccounts] : orgAccounts;
-  }, [userAccount, orgs]);
+  }, [userAccount, orgs, orgAvatarByName]);
 
   const currentAccount: Account | undefined =
     accounts.find((acc) => acc.name === owner) ??
-    (owner ? { name: owner, displayName: owner, type: owner === userAccount?.name ? 'user' : 'org' } : undefined);
+    (owner
+      ? {
+          name: owner,
+          displayName: owner,
+          type: owner === userAccount?.name ? 'user' : 'org',
+          avatarUrl: orgAvatarByName.get(owner),
+        }
+      : undefined);
   const otherAccounts = accounts.filter((acc) => acc.name !== currentAccount?.name);
 
   const handleOpen = (event: MouseEvent<HTMLElement>): void => {
@@ -242,9 +271,9 @@ export function AccountMenu(): ReactElement {
           </Box>
         )}
         {currentAccount ? (
-          <AccountAvatar account={currentAccount} size={40} />
+          <AccountAvatar account={currentAccount} size={32} />
         ) : (
-          <Avatar sx={{ width: 40, height: 40 }}>
+          <Avatar sx={{ width: 32, height: 32 }}>
             <AccountOutline />
           </Avatar>
         )}
@@ -291,7 +320,7 @@ export function AccountMenu(): ReactElement {
         >
           <AccountAvatar
             account={{ name: profileHandle, displayName: profileName, type: 'user', avatarUrl: userAccount?.avatarUrl }}
-            size={40}
+            size={32}
           />
           <AccountText primary={profileName} secondary={profileHandle ? `@${profileHandle}` : ''} />
         </MenuItem>
@@ -315,7 +344,7 @@ export function AccountMenu(): ReactElement {
                 bgcolor: alpha(currentTone, 0.08),
               }}
             >
-              <AccountAvatar account={currentAccount} size={32} />
+              <AccountAvatar account={currentAccount} size={28} />
               <AccountText primary={currentAccount.displayName} secondary={getAccountKind(currentAccount.type)} bold />
               <CheckCircleOutline sx={{ fontSize: 22, color: currentTone }} aria-label="Current account" />
             </Box>
@@ -330,7 +359,7 @@ export function AccountMenu(): ReactElement {
             onClick={() => handleSwitchAccount(acc.name)}
             sx={{ gap: 1.25, borderRadius: '8px', px: 1.5, py: 1, mx: 0.5 }}
           >
-            <AccountAvatar account={acc} size={32} />
+            <AccountAvatar account={acc} size={28} />
             <AccountText
               primary={acc.displayName}
               secondary={acc.type === 'user' ? getAccountKind(acc.type) : `${getAccountKind(acc.type)} · @${acc.name}`}

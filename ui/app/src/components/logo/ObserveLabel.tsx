@@ -13,23 +13,35 @@
 
 import { ReactElement } from 'react';
 import { alpha, Box } from '@mui/material';
+import { acPrimaryStrong } from '../../utils/ac-tokens';
 
-// Product tag next to the logo, tinted with the branding primary color like the sibling AppsCode UIs.
+// Product tag next to the logo, matching the design system's AcProductTag (the "CONSOLE" tag in cluster-ui):
+// h-5 rounded-6 border border-primary/25 bg-primary/10 px-1.5 text-sm font-semibold tracking-wide
+// text-primary-strong uppercase.
 function ObserveLabel(): ReactElement {
   return (
     <Box
+      component="span"
       sx={{
-        fontSize: '12px',
-        lineHeight: '20px',
-        px: 1,
-        fontWeight: 600,
-        letterSpacing: '0.06em',
-        color: 'primary.main',
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        display: 'inline-flex',
+        height: 20,
+        flexShrink: 0,
+        alignItems: 'center',
+        px: '6px',
         borderRadius: '6px',
+        border: '1px solid',
+        borderColor: (theme) => alpha(theme.palette.primary.main, 0.25),
+        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        color: (theme) => acPrimaryStrong(theme),
+        fontSize: '11px',
+        lineHeight: 1,
+        fontWeight: 600,
+        letterSpacing: '0.025em',
+        textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
       }}
     >
-      OBSERVE
+      Observe
     </Box>
   );
 }

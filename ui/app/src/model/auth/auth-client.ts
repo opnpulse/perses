@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 import { useQueryParam } from 'use-query-params';
 import buildURL from '../url-builder';
 import { HTTPHeader, HTTPMethodGET, HTTPMethodPOST } from '../http';
-import { useBrandingFromCache } from '../branding-client';
+import { platformURL, useBrandingFromCache } from '../branding-client';
 import { activeOrganization } from '../../constants/auth-token';
 import { useCurrentUser } from '../user-client';
 
@@ -201,18 +201,20 @@ export function usePlatformOrganizationList(enabled: boolean): UseQueryResult<Pl
       }
       return response.json();
     },
-    // Only needed to decide whether to show billing, which is limited to offline installations.
+    // Used for the billing check (offline installations) and for org avatars in the account menu.
     enabled,
   });
 }
 
 export function getPlatformOrganizations(csrfToken?: string): Promise<Response> {
-  const url = window.location.origin + platformOrganizationsResource;
+  const url = platformURL(platformOrganizationsResource);
   // Platform rejects session-authenticated API calls without a CSRF token (401).
   const headers = csrfToken ? { ...HTTPHeader, [platformCSRFHeader]: csrfToken } : HTTPHeader;
   return fetch(url, {
     method: HTTPMethodGET,
     headers,
+    // The session cookie must also go along when the platform is on another origin (bb.test:3003 in dev).
+    credentials: 'include',
   });
 }
 

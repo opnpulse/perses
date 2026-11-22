@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { Theme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, decomposeColor, hslToRgb } from '@mui/material/styles';
 
 // Surface, border and shadow values from the AppsCode design system (@ac-design/design-system),
 // so the navbar and landing-page cards match cluster-ui and kubedb-ui. Perses' own `background.paper` is a bluish grey
@@ -36,6 +36,28 @@ export type AcTokens = (typeof tokens)['light'];
 
 export function acTokens(theme: Theme): AcTokens {
   return theme.palette.mode === 'dark' ? tokens.dark : tokens.light;
+}
+
+/** Hue (0-360) of a CSS color, as the design system derives --primary-hue from the branding color. */
+function hueOf(color: string): number {
+  const { values } = decomposeColor(color.startsWith('hsl') ? hslToRgb(color) : color);
+  const [r, g, b] = values.slice(0, 3).map((v) => v / 255) as [number, number, number];
+  const max = Math.max(r, g, b);
+  const delta = max - Math.min(r, g, b);
+  if (delta === 0) return 0;
+  let hue = (r - g) / delta + 4;
+  if (max === r) {
+    hue = ((g - b) / delta) % 6;
+  } else if (max === g) {
+    hue = (b - r) / delta + 2;
+  }
+  return Math.round((hue * 60 + 360) % 360);
+}
+
+/** The design system's `--color-primary-strong`: a deep (light) or bright (dark) shade of the brand hue. */
+export function acPrimaryStrong(theme: Theme): string {
+  const hue = hueOf(theme.palette.primary.main);
+  return theme.palette.mode === 'dark' ? `hsl(${hue} 70% 58%)` : `hsl(${hue} 94% 25%)`;
 }
 
 /** The design system's `bg-linear-to-br from-primary/10 via-surface to-surface`. */

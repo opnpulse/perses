@@ -75,7 +75,7 @@ type AceUser struct {
 	Description string `json:"description"`
 }
 
-const prodDomain = "appscode.com"
+var aceClient = &http.Client{Timeout: 10 * time.Second}
 
 func New(userDAO user.DAO, accessTokenDAO accesstoken.DAO, roleDAO role.DAO, roleBindingDAO rolebinding.DAO,
 	globalRoleDAO globalrole.DAO, globalRoleBindingDAO globalrolebinding.DAO, conf config.Config) (*native, error) {
@@ -282,11 +282,12 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 //}
 
 func loginWithAceCookie(req *http.Request) (*AceUser, error) {
-	apiUrl, ok := os.LookupEnv("PLATFORM_APISERVER_DOMAIN")
-	if !ok {
-		apiUrl = BaseURL(req.Host, false)
+	// Never derive the ACE address from the request: the Host header is client-controlled, and whatever
+	// answers there decides who the request is authenticated as.
+	apiUrl := strings.TrimSuffix(os.Getenv("PLATFORM_APISERVER_DOMAIN"), "/")
+	if apiUrl == "" {
+		return nil, errors.New("PLATFORM_APISERVER_DOMAIN is not set")
 	}
-	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// Build request to Ace API
 	upReq, err := http.NewRequest("GET", fmt.Sprintf("%v/api/v1/user", apiUrl), nil)
@@ -305,8 +306,7 @@ func loginWithAceCookie(req *http.Request) (*AceUser, error) {
 		upReq.Header.Set("X-Csrf-Token", csrf.Value)
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(upReq)
+	resp, err := aceClient.Do(upReq)
 	if err != nil {
 		return nil, err
 	}
@@ -322,19 +322,6 @@ func loginWithAceCookie(req *http.Request) (*AceUser, error) {
 	}
 
 	return &user, nil
-}
-
-func BaseURL(host string, production bool) string {
-	baseDomain := getHost(host)
-	if production {
-		return fmt.Sprintf("https://%s", baseDomain)
-	}
-	return fmt.Sprintf("http://%v:3003", baseDomain)
-}
-
-func getHost(host string) string {
-	addr, _ := SplitHostPortDefault(host, prodDomain, "")
-	return addr.Host
 }
 
 func (n *native) GetUserProjects(ctx echo.Context, requestAction v1Role.Action, requestScope v1Role.Scope) ([]string, error) {

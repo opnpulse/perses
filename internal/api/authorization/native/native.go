@@ -203,6 +203,7 @@ func (n *native) Middleware(skipper middleware.Skipper) echo.MiddlewareFunc {
 						"error": "unauthorized",
 					})
 				}
+				c.Set("ace-avatar-url", user.AvatarURL)
 			}
 			c.Set("perses-user", persesUser)
 

@@ -142,5 +142,10 @@ func (e *endpoint) GetUser(ctx echo.Context) error {
 	if !ok {
 		return apiinterface.HandleError(errors.New("user not found"))
 	}
-	return ctx.JSON(http.StatusOK, persesUser)
+	// The avatar lives in ACE and is only known for cookie logins; it is never stored in Perses.
+	avatarURL, _ := ctx.Get("ace-avatar-url").(string)
+	return ctx.JSON(http.StatusOK, struct {
+		*v1.User
+		AvatarURL string `json:"avatar_url,omitempty"`
+	}{persesUser, avatarURL})
 }

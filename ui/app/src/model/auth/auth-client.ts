@@ -67,6 +67,8 @@ export interface BaseUser {
   metadata: Metadata;
   spec: Spec;
   user_type?: 'user' | 'org';
+  // Only set on the current user, from ACE.
+  avatar_url?: string;
 }
 
 export type User = BaseUser;

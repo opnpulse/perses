@@ -36,11 +36,12 @@ interface Account {
   name: string;
   displayName: string;
   type: AccountType;
+  avatarUrl?: string;
 }
 
 function toAccount(entity: BaseUser, type: AccountType): Account {
   const name = entity.metadata?.name ?? '';
-  return { name, displayName: entity.spec?.firstName || name, type };
+  return { name, displayName: entity.spec?.firstName || name, type, avatarUrl: entity.avatar_url };
 }
 
 function getInitials(name: string): string {
@@ -64,6 +65,8 @@ function AccountAvatar({ account, size }: { account: Account; size: number }): R
   return (
     <Avatar
       variant="circular"
+      src={account.avatarUrl}
+      alt={account.displayName}
       sx={{
         width: size,
         height: size,
@@ -286,7 +289,10 @@ export function AccountMenu(): ReactElement {
           onClick={handleClose}
           sx={{ gap: 1.5, borderRadius: '8px', px: 1.5, py: 1.25 }}
         >
-          <AccountAvatar account={{ name: profileHandle, displayName: profileName, type: 'user' }} size={40} />
+          <AccountAvatar
+            account={{ name: profileHandle, displayName: profileName, type: 'user', avatarUrl: userAccount?.avatarUrl }}
+            size={40}
+          />
           <AccountText primary={profileName} secondary={profileHandle ? `@${profileHandle}` : ''} />
         </MenuItem>
 

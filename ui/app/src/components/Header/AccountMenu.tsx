@@ -374,10 +374,6 @@ export function AccountMenu(): ReactElement {
           {isDarkModeEnabled ? <WhiteBalanceSunny /> : <WeatherNight />}
           {isDarkModeEnabled ? 'Light mode' : 'Dark mode'}
         </MenuItem>
-        <MenuItem component={RouterLink} to={ProfileRoute} onClick={handleClose} sx={menuItemSx}>
-          <AccountOutline />
-          Your profile
-        </MenuItem>
         <MenuItem
           onClick={handleLogout}
           sx={{ ...menuItemSx, color: 'error.main', '& > svg': { fontSize: 18, color: 'error.main' } }}
